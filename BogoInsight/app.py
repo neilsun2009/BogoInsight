@@ -66,7 +66,7 @@ data_sources = []
 with st.sidebar:
     with st.spinner('Loading available data...'):
         data_sources = get_data_sources()
-        st.toast('Data sources loaded.', icon='✅')
+        st.toast('Data updated.', icon='✅')
     sel_data_sources = st.multiselect(
         f'Select data sources (max. {MAX_DS_SELECTION})',
         data_sources,
@@ -83,42 +83,51 @@ else:
     st.header('Indivisual data source display')
     tabs = st.tabs([f"{d['category']} ({d['name']})" for d in sel_data_sources])
     for idx, tab in enumerate(tabs):
-        # get df
-        df = dfs[idx]
-        
-        # line chart        
-        y_columns = [col for col in df.columns if col not in ['period']]
-        fig = px.line(df, 
-                      x='period', 
-                      y=y_columns, 
-                      markers=False,
-                      labels={"value": "value", "variable": "category"},
-                      title='Line chart on columns')
-        # add minor ticks and grid
-        fig.update_xaxes(minor_ticks='inside', showgrid=True)
-        # highlight yaxis at 0
-        fig.update_yaxes(zeroline=True, zerolinewidth=2, zerolinecolor='LightPink')
-        
-        # heatmap for correlation
-        corr_matrix = df.corr()
-        heatmap = px.imshow(corr_matrix, 
-                            title='Heatmap for correlation',
-                            text_auto='.2f',
-                            
-                            aspect='auto',
-                            color_continuous_scale='Rdbu_r',
-                            labels={'color': 'corel. coeff'},
-                            range_color=[-1, 1],)
-        heatmap.update_layout(
-            coloraxis_colorbar=dict(
-                title="R",
-            ),
-        )
-        
-        # show charts
         with tab:
+            # get df
+            df = dfs[idx]
+            
             if st.checkbox('Show raw data', key=f"show_raw_data_{idx}"):
                 st.dataframe(df)
+            
+            # select columns
+            y_columns = [col for col in df.columns if col not in ['period']]
+            sel_columns = st.multiselect(
+                '🤔Select columns to display',
+                y_columns,
+                default=y_columns,
+                key=f"sel_columns_{idx}"
+            )
+            
+            # line chart        
+            fig = px.line(df, 
+                        x='period', 
+                        y=sel_columns, 
+                        markers=False,
+                        labels={"value": "value", "variable": "category"},
+                        title='Line chart on columns')
+            # add minor ticks and grid
+            fig.update_xaxes(minor_ticks='inside', showgrid=True)
+            # highlight yaxis at 0
+            fig.update_yaxes(zeroline=True, zerolinewidth=2, zerolinecolor='LightPink')
+            
+            # heatmap for correlation
+            corr_matrix = df[sel_columns].corr()
+            heatmap = px.imshow(corr_matrix, 
+                                title='Heatmap for correlation',
+                                text_auto='.2f',
+                                
+                                aspect='auto',
+                                color_continuous_scale='Rdbu_r',
+                                labels={'color': 'corel. coeff'},
+                                range_color=[-1, 1],)
+            heatmap.update_layout(
+                coloraxis_colorbar=dict(
+                    title="R",
+                ),
+            )
+            
+            # show charts
             st.plotly_chart(fig, theme="streamlit")
             st.plotly_chart(heatmap, theme="streamlit")
             
@@ -137,8 +146,28 @@ else:
             merged_df = merged_df.join(df, how='inner')
         if st.checkbox('Show combined raw data'):
             st.write(merged_df)
+            
+        # select columnds
+        y_columns = [col for col in merged_df.columns if col not in ['period']]
+        sel_columns = st.multiselect(
+            '🤔Select columns to display',
+            y_columns,
+            default=y_columns,
+        )
+        
+        # line chart        
+        fig = px.line(merged_df, 
+                    y=sel_columns, 
+                    markers=False,
+                    labels={"value": "value", "variable": "category"},
+                    title='Combined line chart on columns')
+        # add minor ticks and grid
+        fig.update_xaxes(minor_ticks='inside', showgrid=True)
+        # highlight yaxis at 0
+        fig.update_yaxes(zeroline=True, zerolinewidth=2, zerolinecolor='LightPink')
+        
         # heatmap for correlation
-        corr_matrix = merged_df.corr()
+        corr_matrix = merged_df[sel_columns].corr()
         heatmap = px.imshow(corr_matrix, 
                             title='Heatmap for correlation',
                             text_auto='.2f',
@@ -152,4 +181,5 @@ else:
                 title="R",
             ),
         )
+        st.plotly_chart(fig, theme="streamlit")
         st.plotly_chart(heatmap, theme="streamlit")
