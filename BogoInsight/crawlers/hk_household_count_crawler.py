@@ -10,69 +10,65 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 from BogoInsight.crawlers.base_crawler import BaseCrawler
 from BogoInsight.utils.logger import logger
 
-class HKGDPCrawler(BaseCrawler):
+class HKHouseholdCountCrawler(BaseCrawler):
     
     URL = "https://www.censtatd.gov.hk/api/post.php"
     
     PARAMETERS ={
-        "id": "310-31001",
+        "id": "130-06102",
         "lang": "en",
         "cv": {
         },
         "sv": {
-            "CUR": [
-                "Raw_M_hkd_d",
-                "YoY_1dp_%_s"
+            "PCTDH_DV_OO": [
+                "Prop_1dp_%_n"
             ],
-            "CON": [
-                "Raw_M_hkd_d",
-                "YoY_1dp_%_s"
+            "DH": [
+                "Raw_K_1dp_hh_n"
             ],
-            "DEF": [
-                "Raw_1dp_idx_n",
-                "YoY_1dp_%_s"
+            "ADHS": [
+                "Raw_1dp_per_n"
             ],
-            "SA1": [
-                "QoQ_1dp_%_s"
-            ],
+            "MED_DH_INC": [
+                "Raw_hkd_d"
+            ]
         },
         "period": {
-            "start": "199003",
+            "start": "198503",
         },
         "freq": "Q",
     }
     
     # a dictionary to map 'sv' values to their descriptions
     SV_MAP = {
-        'CUR': 'GDP current',
-        'CON': 'GDP chained (2021)',
-        'DEF': 'implicit price deflator',
-        'SA1': 'GDP seasonally adjusted',
+        'DH': 'households',
+        'PCTDH_DV_OO': 'owner-occupier percentage',
+        'MED_DH_INC': 'median monthly household income',
+        'ADHS': 'avg household size',
     }
     
     # a dictionary to map 'svDesc' values to their descriptions
     SV_DESC_MAP = {
-        'HK$ million': 'HK$M',
-        'Year-on-year % change': '% YoY rate',
-        'Index (Year 2021=100)': 'idx 2021=100',
-        'Quarter-to-quarter % change': '% QoQ rate',
+        '(%)': '%',
+        "No. ('000)": "'000",
+        "No.": "p",
+        'HK$': 'HK$',
     }
     
     def __init__(self):
         super().__init__(
-            topic='Hong Kong GDP Growth',
+            topic='Hong Kong Household Count',
             desc="""
-                GDP data of Hong Kong. 
-                Including GDP in current and chained dollars, as well as change rates (by year & seasonly changed by quarter).
-                Also including implicit price deflator.
+                Household count data of Hong Kong.
+                Including the number of households, as well as percentage of owner-occupiers.
             """,
-            tags=['Hong Kong', 'population'],
+            tags=['Hong Kong', 'household'],
             source_desc="""
                 Census and Statistics Department, HKSAR
                 
-                ID: 310-31001
+                ID: 130-06102
                 
-                URL: https://www.censtatd.gov.hk/en/web_table.html?id=110-01003
+                URL: https://www.censtatd.gov.hk/en/web_table.html?id=130-06102
             """
         )
 
@@ -96,10 +92,15 @@ class HKGDPCrawler(BaseCrawler):
         
         # remove data with 'freq' == 'Y'
         df = df[df['freq'] != 'Y']
-
+        
         # Convert 'period' to datetime
         df['period'] = pd.to_datetime(df['period'], format='%Y%m')
         
+        # only keep quarter data
+        df['month'] = df['period'].dt.month
+        df = df[df['month'].isin([3, 6, 9, 12])]
+        df = df.drop(columns=['month'])
+
         # Replace 'sv' values with their descriptions
         df['sv'] = df['sv'].map(self.SV_MAP)
         df['svDesc'] = df['svDesc'].map(self.SV_DESC_MAP)
@@ -113,11 +114,15 @@ class HKGDPCrawler(BaseCrawler):
         # Pivot the DataFrame to wide format
         df_pivot = df.pivot(index='period', columns='data_type', values='figure')
 
+        # Calculate the percentage change for households
+        df_pivot['household growth rate (%)'] = df_pivot["households ('000)"].pct_change() * 100
+        df_pivot['household growth rate (%)'] = df_pivot["household growth rate (%)"].round(2)
+
         # Now df_pivot is the transformed DataFrame in wide format
         self.processed_data = df_pivot
         
 if __name__ == "__main__":
-    crawler = HKGDPCrawler()
+    crawler = HKHouseholdCountCrawler()
     crawler.crawl()
     crawler.process()
     print(crawler.processed_data.head())

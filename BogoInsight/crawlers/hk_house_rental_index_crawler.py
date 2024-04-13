@@ -13,30 +13,30 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 from BogoInsight.crawlers.base_crawler import BaseCrawler
 from BogoInsight.utils.logger import logger
 
-class HKHousePriceIndexCrawler(BaseCrawler):
+class HKHouseRentalIndexCrawler(BaseCrawler):
     
-    URL = "https://www.rvd.gov.hk/doc/en/statistics/his_data_4.xls"
+    URL = "https://www.rvd.gov.hk/doc/en/statistics/his_data_3.xls"
     
     COLUMN_NAMES = [
         'year', 
         'month', 
-        'house price A, < 40m^2 (idx 1999=100)', 
-        'house price B, 40~69 m^2 (idx 1999=100)', 
-        'house price C, 70~99 m^2 (idx 1999=100)', 
-        'house price D, 100~159 m^2 (idx 1999=100)', 
-        'house price E, >= 160 m^2 (idx 1999=100)', 
-        'house price ABC, < 100 m^2 (idx 1999=100)',
-        'house price DE, >= 100 m^2 (idx 1999=100)',
-        'house price all (idx 1999=100)',
+        'house rental A, < 40m^2 (idx 1999=100)', 
+        'house rental B, 40~69 m^2 (idx 1999=100)', 
+        'house rental C, 70~99 m^2 (idx 1999=100)', 
+        'house rental D, 100~159 m^2 (idx 1999=100)', 
+        'house rental E, >= 160 m^2 (idx 1999=100)', 
+        'house rental ABC, < 100 m^2 (idx 1999=100)',
+        'house rental DE, >= 100 m^2 (idx 1999=100)',
+        'house rental all (idx 1999=100)',
     ]
     
     def __init__(self):
         super().__init__(
-            topic='Hong Kong House Price Index',
+            topic='Hong Kong House Rental Index',
             desc="""
-                House price index of Hong Kong by month from 1982 by class.
+                House rental index of Hong Kong by month from 1993 by class.
             """,
-            tags=['Hong Kong', 'house price'],
+            tags=['Hong Kong', 'house rental'],
             source_desc="""
                 Rating and Valuation Department, HKSAR
                 
@@ -72,13 +72,13 @@ class HKHousePriceIndexCrawler(BaseCrawler):
         assert isinstance(self.raw_data, pd.DataFrame), "Raw data is not of type pd.DataFrame."
 
         df = pd.DataFrame(self.raw_data)
-        growth_rate_column_name = 'house price growth all (% rate MoM)'
-        df[growth_rate_column_name] = df['house price all (idx 1999=100)'].pct_change() * 100
+        growth_rate_column_name = 'house rental growth all (% rate MoM)'
+        df[growth_rate_column_name] = df['house rental all (idx 1999=100)'].pct_change() * 100
         df[growth_rate_column_name] = df[growth_rate_column_name].round(2)
         self.processed_data = df
         
 if __name__ == "__main__":
-    crawler = HKHousePriceIndexCrawler()
+    crawler = HKHouseRentalIndexCrawler()
     crawler.crawl()
     print(crawler.raw_data.head())
     crawler.process()

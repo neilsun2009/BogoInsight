@@ -58,6 +58,12 @@ class HKPopulationGrowthCrawler(BaseCrawler):
         'NM': 'net movement'
     }
     
+    # a dictionary to map 'svDesc' values to their descriptions
+    SV_DESC_MAP = {
+        '(\'000)': '\'000',
+        '(%)': '%',
+    }
+    
     # a dictionary to map 'TYPE_INFLOW' values to their descriptions
     TYPE_INFLOW_MAP = {
         'one-way': 'one-way',
@@ -95,19 +101,23 @@ class HKPopulationGrowthCrawler(BaseCrawler):
 
         # Assuming self.raw_data is your list of dictionaries
         df = pd.DataFrame(self.raw_data)
+        
+        print(df['svDesc'].unique())
 
         # Convert 'period' to datetime
         df['period'] = pd.to_datetime(df['period'], format='%Y%m')
         
         # Replace 'sv' values with their descriptions
         df['sv'] = df['sv'].map(self.SV_MAP)
+        df['svDesc'] = df['svDesc'].map(self.SV_DESC_MAP)
 
         # Replace 'TYPE_INFLOW' values with their descriptions
         df['TYPE_INFLOW'] = df['TYPE_INFLOW'].map(self.TYPE_INFLOW_MAP)
 
         # Create a new column for 'sv' and 'TYPE_INFLOW'
         df['data_type'] = df['sv']
-        df.loc[df['sv'] == 'net movement', 'data_type'] += ' ' + df['TYPE_INFLOW']
+        df.loc[df['sv'] == 'net movement', 'data_type'] += ' ' + df['TYPE_INFLOW'] + ' (' + df['svDesc'] + ')'
+        df.loc[df['sv'] != 'net movement', 'data_type'] += ' (' + df['svDesc'] + ')'
 
         print(df.head())
         print(df['data_type'].unique())

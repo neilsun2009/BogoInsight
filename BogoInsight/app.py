@@ -51,7 +51,7 @@ st.set_page_config(
     page_icon='👀'
 )
 
-st.title('Welcome to Bogo Insight!')
+st.title('👀Welcome to Bogo Insight!')
 
 # with st.spinner('Connecting to database...'):
 #     if check_db_connection():
@@ -68,7 +68,7 @@ with st.sidebar:
         data_sources = get_data_sources()
         st.toast('Data updated.', icon='✅')
     sel_data_sources = st.multiselect(
-        f'Select data sources (max. {MAX_DS_SELECTION})',
+        f'🎯Select data sources (max. {MAX_DS_SELECTION})',
         data_sources,
         format_func=lambda d:f"{d['category']} ({d['name']})",
         max_selections=MAX_DS_SELECTION,
@@ -80,7 +80,7 @@ if len(sel_data_sources) == 0:
 else:
     dfs = [load_df(ds['path']) for ds in sel_data_sources]
     # indivisual data source display
-    st.header('Indivisual data source display')
+    st.header('📎Indivisual data source display')
     tabs = st.tabs([f"{d['category']} ({d['name']})" for d in sel_data_sources])
     for idx, tab in enumerate(tabs):
         with tab:
@@ -93,7 +93,7 @@ else:
             # select columns
             y_columns = [col for col in df.columns if col not in ['period']]
             sel_columns = st.multiselect(
-                '🤔Select columns to display',
+                '📊Select columns to display',
                 y_columns,
                 default=y_columns,
                 key=f"sel_columns_{idx}"
@@ -101,22 +101,24 @@ else:
             
             # line chart        
             fig = px.line(df, 
+                        title='📈Line chart on columns',
                         x='period', 
                         y=sel_columns, 
                         markers=False,
                         labels={"value": "value", "variable": "category"},
-                        title='Line chart on columns')
+                        )
             # add minor ticks and grid
             fig.update_xaxes(minor_ticks='inside', showgrid=True)
             # highlight yaxis at 0
             fig.update_yaxes(zeroline=True, zerolinewidth=2, zerolinecolor='LightPink')
+            # connect gaps
+            fig.update_traces(connectgaps=True)
             
             # heatmap for correlation
-            corr_matrix = df[sel_columns].corr()
+            corr_matrix = df[sel_columns].corr(numeric_only=True)
             heatmap = px.imshow(corr_matrix, 
-                                title='Heatmap for correlation',
+                                title='🔥Heatmap for correlation',
                                 text_auto='.2f',
-                                
                                 aspect='auto',
                                 color_continuous_scale='Rdbu_r',
                                 labels={'color': 'corel. coeff'},
@@ -132,7 +134,7 @@ else:
             st.plotly_chart(heatmap, theme="streamlit")
             
     # combination of multiple data sources
-    st.header('Combination of multiple data sources')
+    st.header('🖇️Combination of multiple data sources')
     st.write('Only data sources containing column `period` will be combined.')
     # Filter dfs by containing column 'period'
     dfs_with_period = [df.set_index('period') for df in dfs if 'period' in df.columns]
@@ -143,33 +145,45 @@ else:
         # Combine data sources
         merged_df = dfs_with_period[0]
         for df in dfs_with_period[1:]:
-            merged_df = merged_df.join(df, how='inner')
+            merged_df = merged_df.join(df, on='period', how='outer', sort=True)
+        merged_df.set_index('period', inplace=True)
         if st.checkbox('Show combined raw data'):
             st.write(merged_df)
             
-        # select columnds
+        # select columns
         y_columns = [col for col in merged_df.columns if col not in ['period']]
         sel_columns = st.multiselect(
-            '🤔Select columns to display',
+            '📊Select columns to display',
             y_columns,
             default=y_columns,
         )
+        selected_df = merged_df[sel_columns]
+        
+        # select period range
+        start_period, end_period = st.select_slider(
+            '🗓️Select period range',
+            options = selected_df.index,
+            value = (selected_df.index.min(), selected_df.index.max())
+        )
+        selected_df = selected_df.loc[start_period:end_period]
         
         # line chart        
-        fig = px.line(merged_df, 
-                    y=sel_columns, 
+        fig = px.line(selected_df, 
+                    title='📈Combined line chart on columns',
+                    # y=sel_columns, 
                     markers=False,
-                    labels={"value": "value", "variable": "category"},
-                    title='Combined line chart on columns')
+                    labels={"value": "value", "variable": "category"},)
         # add minor ticks and grid
         fig.update_xaxes(minor_ticks='inside', showgrid=True)
         # highlight yaxis at 0
         fig.update_yaxes(zeroline=True, zerolinewidth=2, zerolinecolor='LightPink')
+        # connect gaps
+        fig.update_traces(connectgaps=True)
         
         # heatmap for correlation
-        corr_matrix = merged_df[sel_columns].corr()
+        corr_matrix = selected_df[sel_columns].corr(numeric_only=True)
         heatmap = px.imshow(corr_matrix, 
-                            title='Heatmap for correlation',
+                            title='🔥Heatmap for correlation',
                             text_auto='.2f',
                             
                             aspect='auto',
