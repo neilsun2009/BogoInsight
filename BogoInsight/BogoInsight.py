@@ -8,6 +8,12 @@ from sqlalchemy.exc import OperationalError
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from BogoInsight.utils.logger import logger
+from BogoInsight.utils.data_utils import (
+    get_data_sources, load_df,
+)
+from BogoInsight.utils.plot_utils import (
+    update_line_chart, gen_heatmap
+)
 # from BogoInsight.database.session import Session, engine
 
 MAX_DS_SELECTION = 3
@@ -28,30 +34,13 @@ def check_db_connection():
         # Close the session
         session.close()
         
-@st.cache_data
-def get_data_sources():
-    # read data from data/ folder
-    data_sources = []
-    for category in os.listdir('data'):
-        for file in os.listdir(f'data/{category}'):
-            if file.endswith('.csv'):
-                data_sources.append({
-                    'category': category.replace('_', ' ').title(),
-                    'name': file.replace('.csv', ''),
-                    'path': f'data/{category}/{file}'
-                })
-    return data_sources
-
-@st.cache_data
-def load_df(path):
-    return pd.read_csv(path)
         
 st.set_page_config(
-    page_title='Bogo Insight', 
+    page_title='BogoInsight', 
     page_icon='👀'
 )
 
-st.title('👀Welcome to Bogo Insight!')
+st.title('👀Welcome to BogoInsight!')
 
 # with st.spinner('Connecting to database...'):
 #     if check_db_connection():
@@ -107,27 +96,12 @@ else:
                         markers=False,
                         labels={"value": "value", "variable": "category"},
                         )
-            # add minor ticks and grid
-            fig.update_xaxes(minor_ticks='inside', showgrid=True)
-            # highlight yaxis at 0
-            fig.update_yaxes(zeroline=True, zerolinewidth=2, zerolinecolor='LightPink')
-            # connect gaps
-            fig.update_traces(connectgaps=True)
+            update_line_chart(fig)
             
             # heatmap for correlation
             corr_matrix = df[sel_columns].corr(numeric_only=True)
-            heatmap = px.imshow(corr_matrix, 
-                                title='🔥Heatmap for correlation',
-                                text_auto='.2f',
-                                aspect='auto',
-                                color_continuous_scale='Rdbu_r',
-                                labels={'color': 'corel. coeff'},
-                                range_color=[-1, 1],)
-            heatmap.update_layout(
-                coloraxis_colorbar=dict(
-                    title="R",
-                ),
-            )
+            heatmap = gen_heatmap(corr_matrix, 
+                                  title='🔥Heatmap for correlation',)
             
             # show charts
             st.plotly_chart(fig, theme="streamlit")
@@ -173,27 +147,12 @@ else:
                     # y=sel_columns, 
                     markers=False,
                     labels={"value": "value", "variable": "category"},)
-        # add minor ticks and grid
-        fig.update_xaxes(minor_ticks='inside', showgrid=True)
-        # highlight yaxis at 0
-        fig.update_yaxes(zeroline=True, zerolinewidth=2, zerolinecolor='LightPink')
-        # connect gaps
-        fig.update_traces(connectgaps=True)
+        update_line_chart(fig)
         
         # heatmap for correlation
         corr_matrix = selected_df[sel_columns].corr(numeric_only=True)
-        heatmap = px.imshow(corr_matrix, 
-                            title='🔥Heatmap for correlation',
-                            text_auto='.2f',
-                            
-                            aspect='auto',
-                            color_continuous_scale='Rdbu_r',
-                            labels={'color': 'correl. coeff'},
-                            range_color=[-1, 1],)
-        heatmap.update_layout(
-            coloraxis_colorbar=dict(
-                title="R",
-            ),
-        )
+        heatmap = gen_heatmap(corr_matrix, 
+                            title='🔥Heatmap for correlation',)
+
         st.plotly_chart(fig, theme="streamlit")
         st.plotly_chart(heatmap, theme="streamlit")
