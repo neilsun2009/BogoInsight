@@ -120,7 +120,8 @@ else:
         merged_df = dfs_with_period[0]
         for df in dfs_with_period[1:]:
             merged_df = merged_df.join(df, on='period', how='outer', sort=True)
-        merged_df.set_index('period', inplace=True)
+        if 'period' in merged_df.columns:
+            merged_df.set_index('period', inplace=True)
         if st.checkbox('Show combined raw data'):
             st.write(merged_df)
             

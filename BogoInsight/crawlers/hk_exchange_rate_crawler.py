@@ -10,69 +10,60 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 from BogoInsight.crawlers.base_crawler import BaseCrawler
 from BogoInsight.utils.logger import logger
 
-class HKGDPCrawler(BaseCrawler):
+class HKExchangeRateCrawler(BaseCrawler):
     
     URL = "https://www.censtatd.gov.hk/api/post.php"
     
     PARAMETERS ={
-        "id": "310-31001",
+        "id": "340-46001",
         "lang": "en",
-        "cv": {
-        },
+        "cv": {},
         "sv": {
-            "CUR": [
-                "Raw_M_hkd_d",
-                "YoY_1dp_%_s"
+            "FC_JPY": [
+                "Raw_4dp_hkd_d"
             ],
-            "CON": [
-                "Raw_M_hkd_d",
-                "YoY_1dp_%_s"
+            "FC_GBP": [
+                "Raw_2dp_hkd_d"
             ],
-            "DEF": [
-                "Raw_1dp_idx_n",
-                "YoY_1dp_%_s"
+            "FC_USD": [
+                "Raw_3dp_hkd_d"
             ],
-            "SA1": [
-                "QoQ_1dp_%_s"
+            "FC_CNY": [
+                "Raw_4dp_hkd_d"
             ],
+            "FC_EUR": [
+                "Raw_2dp_hkd_d"
+            ]
         },
         "period": {
-            "start": "199003",
+            "start": "197501"
         },
-        "freq": "Q",
     }
     
     # a dictionary to map 'sv' values to their descriptions
     SV_MAP = {
-        'CUR': 'GDP current',
-        'CON': 'GDP chained (2021)',
-        'DEF': 'implicit price deflator',
-        'SA1': 'GDP seasonally adjusted',
+        'FC_JPY': 'exchange rate JPY to HKD',
+        'FC_CNY': 'exchange rate CNY to HKD',
+        'FC_USD': 'exchange rate USD to HKD',
+        'FC_GBP': 'exchange rate GBP to HKD',
+        'FC_EUR': 'exchange rate EUR to HKD',
     }
-    
-    # a dictionary to map 'svDesc' values to their descriptions
-    SV_DESC_MAP = {
-        'HK$ million': 'HK$M',
-        'Year-on-year % change': '% YoY rate',
-        'Index (Year 2021=100)': 'idx 2021=100',
-        'Quarter-to-quarter % change': '% QoQ rate',
-    }
+
     
     def __init__(self):
         super().__init__(
-            topic='Hong Kong GDP Growth',
+            topic='Hong Kong Exchange Rate',
             desc="""
-                GDP data of Hong Kong. 
-                Including GDP in current and chained dollars, as well as change rates (by year & seasonly changed by quarter).
-                Also including implicit price deflator.
+                Exchange rate data of Hong Kong, monthly, since 1975.
+                Selected data of RMB, USD, GBP, EUR and JPY to HKD.
             """,
-            tags=['Hong Kong', 'population'],
+            tags=['Hong Kong', 'exchange rate'],
             source_desc="""
                 Census and Statistics Department, HKSAR
                 
-                ID: 310-31001
+                ID: 340-46001
                 
-                URL: https://www.censtatd.gov.hk/en/web_table.html?id=310-31001
+                URL: https://www.censtatd.gov.hk/en/web_table.html?id=340-46001
             """
         )
 
@@ -101,11 +92,11 @@ class HKGDPCrawler(BaseCrawler):
         df['period'] = pd.to_datetime(df['period'], format='%Y%m')
         
         # Replace 'sv' values with their descriptions
-        df['sv'] = df['sv'].map(self.SV_MAP)
-        df['svDesc'] = df['svDesc'].map(self.SV_DESC_MAP)
+        df['data_type'] = df['sv'].map(self.SV_MAP)
+        # df['svDesc'] = df['svDesc'].map(self.SV_DESC_MAP)
         
         # Create a new column for 'sv' and 'TYPE_INFLOW'
-        df['data_type'] = df['sv'] + ' (' + df['svDesc'] + ')'
+        # df['data_type'] = df['sv'] + ' (' + df['svDesc'] + ')'
 
         print(df.head())
         print(df['data_type'].unique())
@@ -117,7 +108,7 @@ class HKGDPCrawler(BaseCrawler):
         self.processed_data = df_pivot
         
 if __name__ == "__main__":
-    crawler = HKGDPCrawler()
+    crawler = HKExchangeRateCrawler()
     crawler.crawl()
     crawler.process()
     print(crawler.processed_data.head())

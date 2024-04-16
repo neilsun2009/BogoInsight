@@ -10,69 +10,67 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 from BogoInsight.crawlers.base_crawler import BaseCrawler
 from BogoInsight.utils.logger import logger
 
-class HKGDPCrawler(BaseCrawler):
+class HKForeignInvestmentCrawler(BaseCrawler):
     
     URL = "https://www.censtatd.gov.hk/api/post.php"
     
     PARAMETERS ={
-        "id": "310-31001",
+        "id": "315-38011",
         "lang": "en",
         "cv": {
+        "COUNTRY": [
+            "VG",
+            "CN",
+            "GB",
+            "KY",
+            "BM",
+            "US"
+            ]
         },
         "sv": {
-            "CUR": [
-                "Raw_M_hkd_d",
-                "YoY_1dp_%_s"
+            "DI_POS_IDI": [
+                "Raw_B_1dp_hkd_d"
             ],
-            "CON": [
-                "Raw_M_hkd_d",
-                "YoY_1dp_%_s"
+            "DI_INCOME_OUTFLOW": [
+                "Raw_B_1dp_hkd_d"
             ],
-            "DEF": [
-                "Raw_1dp_idx_n",
-                "YoY_1dp_%_s"
-            ],
-            "SA1": [
-                "QoQ_1dp_%_s"
-            ],
+            "DI_INFLOW": [
+                "Raw_B_1dp_hkd_d"
+            ]
         },
         "period": {
-            "start": "199003",
+            "start": "196101"
         },
-        "freq": "Q",
     }
     
     # a dictionary to map 'sv' values to their descriptions
     SV_MAP = {
-        'CUR': 'GDP current',
-        'CON': 'GDP chained (2021)',
-        'DEF': 'implicit price deflator',
-        'SA1': 'GDP seasonally adjusted',
+        'DI_POS_IDI': 'year end direct investment position',
+        'DI_INCOME_OUTFLOW': 'direct investment income outflow',
+        'DI_INFLOW': 'direct investment inflow',
     }
     
     # a dictionary to map 'svDesc' values to their descriptions
     SV_DESC_MAP = {
-        'HK$ million': 'HK$M',
-        'Year-on-year % change': '% YoY rate',
-        'Index (Year 2021=100)': 'idx 2021=100',
-        'Quarter-to-quarter % change': '% QoQ rate',
+        'HK$ billion': 'HK$B',
     }
+
     
     def __init__(self):
         super().__init__(
-            topic='Hong Kong GDP Growth',
+            topic='Hong Kong Foreign Investment',
             desc="""
-                GDP data of Hong Kong. 
-                Including GDP in current and chained dollars, as well as change rates (by year & seasonly changed by quarter).
-                Also including implicit price deflator.
+                Foreign direct investment data of Hong Kong. 
+                Yearly data since 1998.
+                Including year-end position, direct inflow, and direct outflow.
             """,
-            tags=['Hong Kong', 'population'],
+            tags=['Hong Kong', 'foreign investment'],
             source_desc="""
                 Census and Statistics Department, HKSAR
                 
-                ID: 310-31001
+                ID: 315-38011
                 
-                URL: https://www.censtatd.gov.hk/en/web_table.html?id=310-31001
+                URL: https://www.censtatd.gov.hk/en/web_table.html?id=315-38011
             """
         )
 
@@ -90,24 +88,22 @@ class HKGDPCrawler(BaseCrawler):
         # Assuming self.raw_data is your list of dictionaries
         df = pd.DataFrame(self.raw_data)
         
-        print(df.head(10))
-        
+        print(df['sv'].unique())
         print(df['svDesc'].unique())
-        
-        # remove data with 'freq' == 'Y'
-        df = df[df['freq'] != 'Y']
 
         # Convert 'period' to datetime
-        df['period'] = pd.to_datetime(df['period'], format='%Y%m')
+        df['period'] = pd.to_datetime(df['period'], format='%Y')
         
         # Replace 'sv' values with their descriptions
         df['sv'] = df['sv'].map(self.SV_MAP)
         df['svDesc'] = df['svDesc'].map(self.SV_DESC_MAP)
+        df['COUNTRY'] = df['COUNTRY'].replace('', 'all')
         
-        # Create a new column for 'sv' and 'TYPE_INFLOW'
-        df['data_type'] = df['sv'] + ' (' + df['svDesc'] + ')'
+        # Create a new column for 'sv'
+        df['data_type'] = df['sv'] + ' ' + df['COUNTRY'] + ' (' + df['svDesc'] + ')'
 
         print(df.head())
+        # print(df[df['sv'].isnull()])
         print(df['data_type'].unique())
         print(df.isnull().sum())
         # Pivot the DataFrame to wide format
@@ -117,7 +113,7 @@ class HKGDPCrawler(BaseCrawler):
         self.processed_data = df_pivot
         
 if __name__ == "__main__":
-    crawler = HKGDPCrawler()
+    crawler = HKForeignInvestmentCrawler()
     crawler.crawl()
     crawler.process()
     print(crawler.processed_data.head())

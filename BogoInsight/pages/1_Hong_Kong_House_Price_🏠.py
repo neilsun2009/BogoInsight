@@ -21,6 +21,9 @@ CAT_HOUSE_VACANCY = 'hong_kong_house_vacancy'
 CAT_HOUSEHOLD = 'hong_kong_household_count'
 CAT_GDP = 'hong_kong_gdp_growth'
 CAT_INTEREST_RATE = 'hong_kong_interest_rate'
+CAT_EXCHANGE_RATE = 'hong_kong_exchange_rate'
+CAT_FOREIGN_INVEST = 'hong_kong_foreign_investment'
+CAT_HIBOR = 'hibor'
 
 # def rise & fall time ranges
 TENDENCY_RANGES = [
@@ -86,12 +89,14 @@ def write_tendency_desc(tr):
     """)
     
 def draw_tendency_rects(fig, with_annotation=True):
-    for tr in TENDENCY_RANGES:
+    for idx, tr in enumerate(TENDENCY_RANGES):
         # draw rect
         fig.add_vrect(x0=tr['start'], x1=tr['end'], 
                          line_width=0, fillcolor="green" if tr['tendency'] == 'rise' else 'red', opacity=0.2,
-                         annotation_text=f"{'+' if tr['tendency'] == 'rise' else ''}{tr['pct_change']:.2f}%" if with_annotation else '', 
-                         annotation_position=("top left" if tr['tendency'] == 'rise' else 'top right'),)
+                        #  annotation_text=f"{'+' if tr['tendency'] == 'rise' else ''}{tr['pct_change']:.2f}%" if with_annotation else '', 
+                         annotation_text=f"{idx+1}." if with_annotation else '', 
+                        #  annotation_position=("top left" if tr['tendency'] == 'rise' else 'top right'),)
+                         annotation_position=("top left"),)
         
 st.set_page_config(
     page_title='Hong Kong House Price Analysis - BogoInsight', 
@@ -109,8 +114,11 @@ ds_house_price = get_latest_data_source(CAT_HOUSE_PRICE)
 ds_house_rental = get_latest_data_source(CAT_HOUSE_RENTAL)
 ds_gdp = get_latest_data_source(CAT_GDP)
 ds_interest_rate = get_latest_data_source(CAT_INTEREST_RATE)
+ds_exchange_rate = get_latest_data_source(CAT_EXCHANGE_RATE)
+ds_foreign_invest = get_latest_data_source(CAT_FOREIGN_INVEST)
 ds_vacancy = get_latest_data_source(CAT_HOUSE_VACANCY)
 ds_household = get_latest_data_source(CAT_HOUSEHOLD)
+ds_hibor = get_latest_data_source(CAT_HIBOR)
 
 # data preprocessing
 with st.spinner('Data preprocessing...'):
@@ -142,16 +150,37 @@ with st.spinner('Data preprocessing...'):
     merged_df = merged_df.join(load_df(ds_interest_rate['path']).set_index('period')[[
             'best lending rate (% p.a.)', 
         ]], on='period', how='outer', sort=True)
+    merged_df = merged_df.join(load_df(ds_hibor['path']).set_index('period')[[
+            'HIBOR 1M (% p.a.)', 
+        ]], on='period', how='outer', sort=True)
+    merged_df = merged_df.join(load_df(ds_exchange_rate['path']).set_index('period')[[
+            'exchange rate CNY to HKD', 
+            'exchange rate USD to HKD', 
+        ]], on='period', how='outer', sort=True)
+    merged_df = merged_df.join(load_df(ds_foreign_invest['path']).set_index('period')[[
+            'year end direct investment position all (HK$B)', 
+            'year end direct investment position CN (HK$B)', 
+            'year end direct investment position GB (HK$B)', 
+            'year end direct investment position VG (HK$B)', 
+            'year end direct investment position KY (HK$B)', 
+        ]], on='period', how='outer', sort=True)
     merged_df.set_index('period', inplace=True)
     # select data from 1993
-    merged_df = merged_df.loc['1993-01-01':]
+    merged_df = merged_df.loc['1995-01-01':]
     # additional column calculation
     merged_df['house total supply (num)'] = (merged_df['house vacancy all (num)'] * 100 / merged_df['house vacancy all (%)']).round()
+    merged_df['house occupied all (num)'] = merged_df['house total supply (num)'] - merged_df['house vacancy all (num)']
+    # rename columns
+    merged_df.rename(columns={
+        'GDP seasonally adjusted (% QoQ rate)': 'GDP growth rate (%)',
+        'implicit price deflator (% YoY rate)': 'inflation rate (%)'
+    }, inplace=True)
     # fill in details for each tendency range
     house_price_index_column = 'house price all (idx 1999=100)'
-    for tr in TENDENCY_RANGES:
+    for idx, tr in enumerate(TENDENCY_RANGES):
         start_value = merged_df.loc[tr['start'], house_price_index_column]
         end_value = merged_df.loc[tr['end'], house_price_index_column]
+        tr['idx'] = idx + 1
         tr['tendency'] = 'rise' if end_value > start_value else 'fall'
         tr['pct_change'] = (end_value - start_value) / start_value * 100
         # Calculate the duration in years and months
@@ -185,26 +214,27 @@ with st.container():
     # write desc
     rise_trs = [tr for tr in TENDENCY_RANGES if tr['tendency'] == 'rise']
     st.write(f"🔼{len(rise_trs)} major rises:")
-    tabs = st.tabs([f"{tr['start'][:7]} ~ {tr['end'][:7]}" for tr in rise_trs])
+    tabs = st.tabs([f"#{tr['idx']}. {tr['start'][:7]} ~ {tr['end'][:7]}" for tr in rise_trs])
     for idx, tab in enumerate(tabs):
         with tab:
             write_tendency_desc(rise_trs[idx])
     fall_trs = [tr for tr in TENDENCY_RANGES if tr['tendency'] == 'fall']
     st.write(f'🔽{len(fall_trs)} major falls:')
-    tabs = st.tabs([f"{tr['start'][:7]} ~ {tr['end'][:7]}" for tr in fall_trs])
+    tabs = st.tabs([f"#{tr['idx']}. {tr['start'][:7]} ~ {tr['end'][:7]}" for tr in fall_trs])
     for idx, tab in enumerate(tabs):
         with tab:
             write_tendency_desc(fall_trs[idx])
 
-# Observe supply
-st.header('Supply side factors')
+# Observe macro economy
+st.header('💹Macro economy factors')
 
-# house supply & vacancy
+# GDP
 with st.container():
-    st.subheader('🏠House supply & vacancy')
-    # house supply
+    st.subheader('🏭GDP growth rate is a good indicator when it\'s below zero or spikes')
+    # gdp
     fig = px.line(merged_df, 
-                 y=['house price all (idx 1999=100)', 'house total supply (num)'], 
+                 y=['house price all (idx 1999=100)', 'GDP growth rate (%)'], 
+                 title='HK house price 🆚 GPD growth rate',
                  facet_col="variable",
                  facet_col_wrap=1,
                  facet_row_spacing=0.15,
@@ -213,9 +243,170 @@ with st.container():
     fig.update_yaxes(matches=None)
     fig.update_layout(showlegend=False)
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=", maxsplit=1)[-1]))
-    draw_tendency_rects(fig, with_annotation=False)
+    draw_tendency_rects(fig, with_annotation=True)
+    # add vacancy as bar
+    # vacancy_bar = go.Bar(name='vacancy', x=merged_df.index, y=merged_df['house vacancy all (num)'], 
+    #                      marker_color='red', opacity=0.5,)
+    # fig.add_trace(vacancy_bar, row=1, col=1)
+    
     st.plotly_chart(fig, theme="streamlit")
+    st.markdown("""
+        **Note:** GDP growth rate is calculated by quarter and is seasonally adjusted. 
+        
+        **Observation:**
+        
+        + When GDP decreases (growth rate < 0), house price will most certainly to drop.  
+        This accounts for period #2, #4 and #10.
+        + When GDP growth rate spikes, house price will often increase, as in period #3 & #5.
+        + Notice that during period #3, house price is still decreasing despite the rise of GDP.  
+        This indicates that some stronger factors are at play.
+    """)
+    
+# Exchange rate
+with st.container():
+    st.subheader('💱CNY/USD to HKD exchange rates are strong indicators')
+    # exchange rate
+    fig = px.line(merged_df, 
+                 y=['house price all (idx 1999=100)', 'exchange rate CNY to HKD', 'exchange rate USD to HKD'], 
+                 title='HK house price 🆚 exchange rate of CNY/USD to HKD',
+                 facet_col="variable",
+                 facet_col_wrap=1,
+                 facet_row_spacing=0.15,
+                 color=px.NO_COLOR,)
+    update_line_chart(fig)
+    fig.update_yaxes(matches=None)
+    fig.update_layout(showlegend=False)
+    fig.for_each_annotation(lambda a: a.update(text=a.text.split("=", maxsplit=1)[-1]))
+    fig.add_hline(y=7.8, line_dash="dot", line_color="pink", row=1)
+    fig.add_hline(y=1, line_dash="dot", line_color="pink", row=2)
+    draw_tendency_rects(fig, with_annotation=True)
+    # add vacancy as bar
+    # vacancy_bar = go.Bar(name='vacancy', x=merged_df.index, y=merged_df['house vacancy all (num)'], 
+    #                      marker_color='red', opacity=0.5,)
+    # fig.add_trace(vacancy_bar, row=1, col=1)
+    
+    st.plotly_chart(fig, theme="streamlit")
+    st.markdown("""
+        **Observation:**
+        
+        + Capital from mainland China has been a significant buyer in the HK house market.  
+        Every major rise & fall in house price has a corresponding change in the exchange rate of CNY to HKD since 2003.
+        + This can be explained in that when CNY is stronger, mainland buyers will have more purchasing power in HK. And vice versa.
+        + USD to HKD exchange rate can also be a strong indicator, because if affects the monetary policy of HK as a result of the linked exchange rate system.
+        + When USD to HKD exchange rate reaches 7.75 (strong side band), HKMA will have to increase the money supply and house market will bloom.  
+        Conversely, when it reaches 7.85 (weak side band), HKMA will have to decrease the money supply, which will threathen the house market.
+        + This trait can be clearly seen in period #5, #7 (increase) and #10 (decrease).
+    """)
 
+# Observe supply
+st.header('🏪Supply factors')
+
+# house supply & vacancy
+with st.container():
+    st.subheader('🏘️When house vacancy is high, it negatively correlates with house price')
+    # house supply
+    fig = px.line(merged_df, 
+                 y=['house price all (idx 1999=100)', 'house total supply (num)', 'house vacancy all (%)'], 
+                 title='HK house price 🆚 supply & vacancy',
+                 facet_col="variable",
+                 facet_col_wrap=1,
+                 facet_row_spacing=0.15,
+                 color=px.NO_COLOR,)
+    update_line_chart(fig)
+    fig.update_yaxes(matches=None)
+    fig.update_layout(showlegend=False)
+    fig.for_each_annotation(lambda a: a.update(text=a.text.split("=", maxsplit=1)[-1]))
+    fig.add_hline(y=5, line_dash="dot", line_color="pink", row=1)
+    draw_tendency_rects(fig, with_annotation=True)
+    # add vacancy as bar
+    # vacancy_bar = go.Bar(name='vacancy', x=merged_df.index, y=merged_df['house vacancy all (num)'], 
+    #                      marker_color='red', opacity=0.5,)
+    # fig.add_trace(vacancy_bar, row=1, col=1)
+    
+    st.plotly_chart(fig, theme="streamlit")
+    st.markdown("""
+        **Note:** the sudden drop for house total supply in 2004 is due to the exclusion of village houses in the calculation. 
+        
+        **Observation:**
+        
+        + House supply has been increasing steadily, making its influence on house price not as significant as expected.
+        + Vacancy rate has a negative correlation with house price, when it fluctuates, especially above 5%.  
+        This accounts for period #2 (increase) and period #3 (decrease).
+        + After Jan 2018, vacancy rate has been relatively stable, making it insignificant to house price fluctuation.
+    """)
+    
+    # bar graph
+    house_vacancy_df = merged_df[~merged_df['house vacancy all (num)'].isnull()]
+    house_vacancy_df.reset_index(drop=False, inplace=True)
+    bar = px.bar(house_vacancy_df,
+                 x='period',
+                 y=['house vacancy all (num)', 'house occupied all (num)'],
+                 title='See also: HK vacancy & occupied house number by year',
+                 labels={
+                     "variable": "category", 
+                     "value": "number",
+                     "period": "year",},
+                 hover_data={
+                     'house vacancy all (%)': True,
+                     'period': "|%Y"},
+                 barmode='stack',)
+    bar.update_xaxes(minor_ticks='inside', showgrid=True)
+    bar.update_layout(
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        ),
+        hovermode="x unified",
+    )
+    st.plotly_chart(bar, theme="streamlit")
+
+
+# Observe demand
+st.header('🙎Demand factors')
+
+# Household
+with st.container():
+    st.subheader('👨‍👩‍👧‍👦Household stats doesn\'t say much, as it\'s fairly steady')
+    # household
+    fig = px.line(merged_df, 
+                 y=['house price all (idx 1999=100)', 'households (\'000)', 'owner-occupier percentage (%)'], 
+                 title='HK house price 🆚 household stats',
+                 facet_col="variable",
+                 facet_col_wrap=1,
+                 facet_row_spacing=0.15,
+                 color=px.NO_COLOR,)
+    update_line_chart(fig)
+    fig.update_yaxes(matches=None)
+    fig.update_layout(showlegend=False)
+    fig.for_each_annotation(lambda a: a.update(text=a.text.split("=", maxsplit=1)[-1]))
+    fig.add_hline(y=50, line_dash="dot", line_color="pink", row=1)
+    draw_tendency_rects(fig, with_annotation=True)
+    # add vacancy as bar
+    # vacancy_bar = go.Bar(name='vacancy', x=merged_df.index, y=merged_df['house vacancy all (num)'], 
+    #                      marker_color='red', opacity=0.5,)
+    # fig.add_trace(vacancy_bar, row=1, col=1)
+    
+    st.plotly_chart(fig, theme="streamlit")
+    st.markdown("""
+        **Observation:**
+        
+        + Household number in HK has been increasing steadily in a linear manner.
+        + Owner-occupier percentage has been stable around 50%.
+        + These two points indicate that the demand for house is stably ever growing. The demand will increase more when investment demand is high.
+    """)
+    
+# Interest rate
+with st.container():
+    st.subheader('💸Interest rate')
+    
+# Foreign capital
+with st.container():
+    st.subheader('🌏Foreign capital')
+    
+    
 # show raw data
 if st.checkbox('Show raw data'):
     st.dataframe(merged_df)
