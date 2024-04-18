@@ -4,6 +4,7 @@ import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
+import numpy as np
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from BogoInsight.utils.data_utils import (
@@ -169,7 +170,12 @@ with st.spinner('Data preprocessing...'):
     merged_df = merged_df.loc['1995-01-01':]
     # additional column calculation
     merged_df['house total supply (num)'] = (merged_df['house vacancy all (num)'] * 100 / merged_df['house vacancy all (%)']).round()
+    # merged_df['house total supply growth rate (% rate YoY)'] = (merged_df['house total supply (num)'].pct_change() * 100).round(2)
     merged_df['house occupied all (num)'] = merged_df['house total supply (num)'] - merged_df['house vacancy all (num)']
+    merged_df['P plan mortgage rate (% p.a.)'] = merged_df['best lending rate (% p.a.)'] - 1.75
+    merged_df['H plan mortgage rate (% p.a.)'] = merged_df[['best lending rate (% p.a.)', 'HIBOR 1M (% p.a.)']].apply(
+        lambda x: min(x['best lending rate (% p.a.)'] - 1.75, x['HIBOR 1M (% p.a.)'] + 1.3) if pd.notnull(x['best lending rate (% p.a.)']) and pd.notnull(x['HIBOR 1M (% p.a.)']) else np.nan, 
+        axis=1)
     # rename columns
     merged_df.rename(columns={
         'GDP seasonally adjusted (% QoQ rate)': 'GDP growth rate (%)',
@@ -196,11 +202,11 @@ with st.spinner('Data preprocessing...'):
 
 # Observe the rises and falls
 with st.container():
-    st.header('📈The rises & falls of HK house market')
+    st.header('📈Overview: the rises & falls of HK house market')
     
     # house price line chart
     line_chart = px.line(merged_df[[house_price_index_column]], 
-                title='💵HK average house price index (1999=100)',
+                title='💵HK avg house price index (1999=100)',
                 # x='period', 
                 # y=sel_columns, 
                 markers=False,
@@ -210,7 +216,19 @@ with st.container():
     line_chart.update_layout(showlegend=False)
     draw_tendency_rects(line_chart)
     
+    rate_chart = px.line(merged_df[['house price growth all (% rate MoM)']], 
+                title='💵HK avg house price growth rate',
+                # x='period', 
+                # y=sel_columns, 
+                markers=False,
+                labels={"period": "time", "value": "%"},
+                )
+    update_line_chart(rate_chart)
+    rate_chart.update_layout(showlegend=False)
+    draw_tendency_rects(rate_chart)
+    
     st.plotly_chart(line_chart, theme="streamlit")
+    st.plotly_chart(rate_chart, theme="streamlit")
     # write desc
     rise_trs = [tr for tr in TENDENCY_RANGES if tr['tendency'] == 'rise']
     st.write(f"🔼{len(rise_trs)} major rises:")
@@ -225,12 +243,15 @@ with st.container():
         with tab:
             write_tendency_desc(fall_trs[idx])
 
+st.header('🔬Analysis')
+
 # Observe macro economy
-st.header('💹Macro economy factors')
+st.subheader('Macro economy factors')
+[gdp_tab, ] = st.tabs(['💹GDP',])
 
 # GDP
-with st.container():
-    st.subheader('🏭GDP growth rate is a good indicator when it\'s below zero or spikes')
+with gdp_tab:
+    st.write('**GDP growth rate is a good indicator when it\'s below zero or spikes**')
     # gdp
     fig = px.line(merged_df, 
                  y=['house price all (idx 1999=100)', 'GDP growth rate (%)'], 
@@ -262,13 +283,18 @@ with st.container():
         This indicates that some stronger factors are at play.
     """)
     
-# Exchange rate
-with st.container():
-    st.subheader('💱CNY/USD to HKD exchange rates are strong indicators')
-    # exchange rate
+
+# Observe supply
+st.subheader('Supply factors')
+[supply_tab, vacancy_tab] = st.tabs(['🏘️House supply', '🧳House vacancy'])
+
+# house supply & vacancy
+with supply_tab:
+    st.write('**House supply increases steadily, making it less correlated with house price**')
+    # house supply
     fig = px.line(merged_df, 
-                 y=['house price all (idx 1999=100)', 'exchange rate CNY to HKD', 'exchange rate USD to HKD'], 
-                 title='HK house price 🆚 exchange rate of CNY/USD to HKD',
+                 y=['house price all (idx 1999=100)', 'house total supply (num)'], 
+                 title='HK house price 🆚 supply & vacancy',
                  facet_col="variable",
                  facet_col_wrap=1,
                  facet_row_spacing=0.15,
@@ -277,8 +303,6 @@ with st.container():
     fig.update_yaxes(matches=None)
     fig.update_layout(showlegend=False)
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=", maxsplit=1)[-1]))
-    fig.add_hline(y=7.8, line_dash="dot", line_color="pink", row=1)
-    fig.add_hline(y=1, line_dash="dot", line_color="pink", row=2)
     draw_tendency_rects(fig, with_annotation=True)
     # add vacancy as bar
     # vacancy_bar = go.Bar(name='vacancy', x=merged_df.index, y=merged_df['house vacancy all (num)'], 
@@ -287,26 +311,18 @@ with st.container():
     
     st.plotly_chart(fig, theme="streamlit")
     st.markdown("""
+        **Note:** the sudden drop for house total supply in 2004 is due to the exclusion of village houses in the calculation. 
+        
         **Observation:**
         
-        + Capital from mainland China has been a significant buyer in the HK house market.  
-        Every major rise & fall in house price has a corresponding change in the exchange rate of CNY to HKD since 2003.
-        + This can be explained in that when CNY is stronger, mainland buyers will have more purchasing power in HK. And vice versa.
-        + USD to HKD exchange rate can also be a strong indicator, because if affects the monetary policy of HK as a result of the linked exchange rate system.
-        + When USD to HKD exchange rate reaches 7.75 (strong side band), HKMA will have to increase the money supply and house market will bloom.  
-        Conversely, when it reaches 7.85 (weak side band), HKMA will have to decrease the money supply, which will threathen the house market.
-        + This trait can be clearly seen in period #5, #7 (increase) and #10 (decrease).
+        + House supply has been increasing steadily, making its influence on house price not as significant as expected.
     """)
-
-# Observe supply
-st.header('🏪Supply factors')
-
-# house supply & vacancy
-with st.container():
-    st.subheader('🏘️When house vacancy is high, it negatively correlates with house price')
+    
+with vacancy_tab:
+    st.write('**When house vacancy is high, it negatively correlates with house price**')
     # house supply
     fig = px.line(merged_df, 
-                 y=['house price all (idx 1999=100)', 'house total supply (num)', 'house vacancy all (%)'], 
+                 y=['house price all (idx 1999=100)', 'house vacancy all (%)'], 
                  title='HK house price 🆚 supply & vacancy',
                  facet_col="variable",
                  facet_col_wrap=1,
@@ -329,27 +345,27 @@ with st.container():
         
         **Observation:**
         
-        + House supply has been increasing steadily, making its influence on house price not as significant as expected.
         + Vacancy rate has a negative correlation with house price, when it fluctuates, especially above 5%.  
         This accounts for period #2 (increase) and period #3 (decrease).
         + After Jan 2018, vacancy rate has been relatively stable, making it insignificant to house price fluctuation.
     """)
-    
+
+with st.container():
     # bar graph
     house_vacancy_df = merged_df[~merged_df['house vacancy all (num)'].isnull()]
     house_vacancy_df.reset_index(drop=False, inplace=True)
     bar = px.bar(house_vacancy_df,
-                 x='period',
-                 y=['house vacancy all (num)', 'house occupied all (num)'],
-                 title='See also: HK vacancy & occupied house number by year',
-                 labels={
-                     "variable": "category", 
-                     "value": "number",
-                     "period": "year",},
-                 hover_data={
-                     'house vacancy all (%)': True,
-                     'period': "|%Y"},
-                 barmode='stack',)
+                    x='period',
+                    y=['house vacancy all (num)', 'house occupied all (num)'],
+                    title='See also: HK vacancy & occupied house number by year',
+                    labels={
+                        "variable": "category", 
+                        "value": "number",
+                        "period": "year",},
+                    hover_data={
+                        'house vacancy all (%)': True,
+                        'period': "|%Y"},
+                    barmode='stack',)
     bar.update_xaxes(minor_ticks='inside', showgrid=True)
     bar.update_layout(
         legend=dict(
@@ -365,11 +381,12 @@ with st.container():
 
 
 # Observe demand
-st.header('🙎Demand factors')
+st.subheader('Demand factors')
+[household_tab, interest_rate_tab, circulation_rate_tab, mainland_capital_tab] = st.tabs(['👨‍👩‍👧‍👦Household', '💳Interest rate', '💸Currency in circulation', '🌏Mainland capital'])
 
 # Household
-with st.container():
-    st.subheader('👨‍👩‍👧‍👦Household stats doesn\'t say much, as it\'s fairly steady')
+with household_tab:
+    st.write('**Household stats doesn\'t say much, as it\'s fairly steady**')
     # household
     fig = px.line(merged_df, 
                  y=['house price all (idx 1999=100)', 'households (\'000)', 'owner-occupier percentage (%)'], 
@@ -399,14 +416,130 @@ with st.container():
     """)
     
 # Interest rate
-with st.container():
-    st.subheader('💸Interest rate')
+with interest_rate_tab:
+    st.write('**Interest rate gives contradictory signals, therefore is a weak indicator**')
+    if st.toggle('Show house price chart', value=False):
+        # house price index
+        price_chart = px.line(merged_df[[house_price_index_column]], 
+                    title='💵HK avg house price index (1999=100)',
+                    # x='period', 
+                    # y=sel_columns, 
+                    markers=False,
+                    labels={"period": "time", "value": "price index"},
+                    )
+        update_line_chart(price_chart)
+        price_chart.update_layout(showlegend=False)
+        draw_tendency_rects(price_chart)
+        st.plotly_chart(price_chart, theme="streamlit")
+    # interest rate
+    ir_df = merged_df[~merged_df['HIBOR 1M (% p.a.)'].isnull()]
+    ir_df.reset_index(drop=False, inplace=True)
+    interest_chart = px.line(ir_df, 
+                title='🏦Various interest rates in HK',
+                x='period', 
+                y=['H plan mortgage rate (% p.a.)', 'P plan mortgage rate (% p.a.)',
+                                        'HIBOR 1M (% p.a.)', 'best lending rate (% p.a.)'], 
+                markers=False,
+                labels={"period": "time", "value": "% p.a."},
+                hover_data={
+                    'period': False,
+                })
+    update_line_chart(interest_chart)
+    interest_chart.update_layout(
+        showlegend=True, 
+        hovermode="x unified",
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.2,
+            xanchor="right",
+            x=1
+        ))
+    draw_tendency_rects(interest_chart)
+    interest_chart.for_each_annotation(lambda a: a.update(text=a.text.replace(" (% p.a.)", "")))
+    st.plotly_chart(interest_chart, theme="streamlit")
+   
+    st.markdown("""
+        **Note:**
+        + H plan & P plan mortage rate are calculated using current standard, i.e.  
+        P plan mortgage rate = best lending rate - 1.75%  
+        H plan mortgage rate = min(P plan mortgage rate - 1.75%, HIBOR (1 month) + 1.3%)
+        + Obviously, H plan is generally preferred by borrowers.
+        
+        **Observation:**
+        
+        + Interest rate gives contradictory signals to house price.
+        + This is due to the fact that interest rate is set as a policy tool to influence market, instead of indicating current market status.
+    """)
+
+# Currency in circulation
+with circulation_rate_tab:
+    st.write('**Currency in circulation greatly affects house price when in extreme**')
+    # exchange rate
+    fig = px.line(merged_df, 
+                 y=['house price all (idx 1999=100)', 'exchange rate USD to HKD'], 
+                 title='HK house price 🆚 exchange rate of USD to HKD',
+                 facet_col="variable",
+                 facet_col_wrap=1,
+                 facet_row_spacing=0.15,
+                 color=px.NO_COLOR,)
+    update_line_chart(fig)
+    fig.update_yaxes(matches=None)
+    fig.update_layout(showlegend=False)
+    fig.for_each_annotation(lambda a: a.update(text=a.text.split("=", maxsplit=1)[-1]))
+    fig.add_hline(y=7.8, line_dash="dot", line_color="pink", row=1, annotation_text="baseline rate", annotation_position="bottom right")
+    fig.add_hline(y=1, line_dash="dot", line_color="pink", row=2, annotation_text="CNY:HKD=1:1", annotation_position="top right")
+    draw_tendency_rects(fig, with_annotation=True)
+    # add vacancy as bar
+    # vacancy_bar = go.Bar(name='vacancy', x=merged_df.index, y=merged_df['house vacancy all (num)'], 
+    #                      marker_color='red', opacity=0.5,)
+    # fig.add_trace(vacancy_bar, row=1, col=1)
     
-# Foreign capital
-with st.container():
-    st.subheader('🌏Foreign capital')
+    st.plotly_chart(fig, theme="streamlit")
+    st.markdown("""
+        **Observation:**
+        
+        + Exchange rate between USD and HKD can be seen as a indicator of currency in circulation, especially when in extreme, i.e. when it reaches 7.75 or 7.85.
+        + This is because that under such situations, the monetary policy of HK is affected as a result of the linked exchange rate system.
+        + When USD to HKD exchange rate reaches 7.75 (strong side band), HKMA will have to increase the money supply and house market will bloom.  
+        Conversely, when it reaches 7.85 (weak side band), HKMA will have to decrease the money supply, which will threathen the house market.
+        + This is a stronger indicator than plaini interest rate, because interest rate can be influenced by other factors, e.g. the profit pressure of the banks.
+        By contrast, the exchange rate is a direct result of the monetary policy of the region, and has a substantial impact on the house market.
+        + This trait can be clearly seen in period #5, #7 (increase) and #10 (decrease).
+    """)
+
+# Mainland capital
+with mainland_capital_tab:
+    st.write('**Mainland capital largely influences HK house market**')
+    fig = px.line(merged_df, 
+                 y=['house price all (idx 1999=100)', 'exchange rate CNY to HKD'], 
+                 title='HK house price 🆚 exchange rate of CNY to HKD',
+                 facet_col="variable",
+                 facet_col_wrap=1,
+                 facet_row_spacing=0.15,
+                 color=px.NO_COLOR,)
+    update_line_chart(fig)
+    fig.update_yaxes(matches=None)
+    fig.update_layout(showlegend=False)
+    fig.for_each_annotation(lambda a: a.update(text=a.text.split("=", maxsplit=1)[-1]))
+    fig.add_hline(y=1, line_dash="dot", line_color="pink", row=1, annotation_text="CNY:HKD=1:1", annotation_position="top right")
+    draw_tendency_rects(fig, with_annotation=True)
+    # add vacancy as bar
+    # vacancy_bar = go.Bar(name='vacancy', x=merged_df.index, y=merged_df['house vacancy all (num)'], 
+    #                      marker_color='red', opacity=0.5,)
+    # fig.add_trace(vacancy_bar, row=1, col=1)
     
+    st.plotly_chart(fig, theme="streamlit")
+    st.markdown("""
+        **Observation:**
+        
+        + Capital from mainland China has been a significant buyer in the HK house market due to geopolitical reasons.  
+        Every major rise & fall in house price has a corresponding change in the exchange rate of CNY to HKD since 2003.
+        + The change of exchange rate between CNY and HKD can be seen as the change of cost for mainland buyers to purchase HK properties.
+        Therefore a good indicator of mainland capital inflow.
+        + This can be explained in that when CNY is stronger, mainland buyers will have more purchasing power in HK. And vice versa.
+    """)
     
 # show raw data
-if st.checkbox('Show raw data'):
+if st.toggle('Show raw data', value=False):
     st.dataframe(merged_df)
