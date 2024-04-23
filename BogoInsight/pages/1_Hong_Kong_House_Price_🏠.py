@@ -36,12 +36,12 @@ TENDENCY_RANGES = [
     {
         'start': '1997-10-01',
         'end': '2003-08-01',
-        'desc': 'Asian Financial Crisis, major capital outflow & SARS outbreak'            
+        'desc': 'Asian Financial Crisis & SARS outbreak'            
     },
     {
         'start': '2003-08-01',
         'end': '2008-03-01',
-        'desc': 'Economic recovery & low interest rate'            
+        'desc': 'Economic recovery & more currency in circulation'            
     },
     {
         'start': '2008-05-01',
@@ -56,27 +56,27 @@ TENDENCY_RANGES = [
     {
         'start': '2015-09-01',
         'end': '2016-03-01',
-        'desc': 'China economic slowdown ?'            
+        'desc': 'Mainland capital inflow restriction'            
     },
     {
         'start': '2016-03-01',
         'end': '2018-07-01',
-        'desc': 'Continuous low interest rate'            
+        'desc': 'More currency in circulation & mainland capital inflow reboom'            
     },
     {
         'start': '2018-08-01',
         'end': '2018-12-01',
-        'desc': 'interest rate hike & trade war'            
+        'desc': 'China-US trade war'            
     },
     {
         'start': '2018-12-01',
         'end': '2019-05-01',
-        'desc': 'Interest rate go down & stablization?'            
+        'desc': 'Impact of trade war stablized'            
     },
     {
         'start': '2021-09-01',
         'end': '2024-02-01',
-        'desc': 'Interest rate hike & major middle class outflow'            
+        'desc': 'Post-COVID economic adjustment, currentcy in circulation dropped & major middle class outflow'            
     },
 ]
 
@@ -86,7 +86,7 @@ def write_tendency_desc(tr):
     st.markdown(f"""
         **Delta:** **{styled_pct_chg}**  
         **Duration:** {tr['duration']}  
-        **Major causes:** {tr['desc']}  
+        **Major events:** {tr['desc']}  
     """)
     
 def draw_tendency_rects(fig, with_annotation=True):
@@ -311,7 +311,7 @@ with supply_tab:
     
     st.plotly_chart(fig, theme="streamlit")
     st.markdown("""
-        **Note:** the sudden drop for house total supply in 2004 is due to the exclusion of village houses in the calculation. 
+        **Note:** the sudden drop for house total supply in 2003 is due to the exclusion of village houses in the calculation. 
         
         **Observation:**
         
@@ -539,6 +539,28 @@ with mainland_capital_tab:
         Therefore a good indicator of mainland capital inflow.
         + This can be explained in that when CNY is stronger, mainland buyers will have more purchasing power in HK. And vice versa.
     """)
+ 
+st.header('📑Conclusion')
+st.markdown("""
+Four indicators are showing strong correlation with HK house price:
+1. **GDP growth rate**: when it's below zero or spikes, house price will drop or hike.
+2. **House vacancy rate**: when it fluctulates greatly, house price will be affected, especially when it's above 5%.
+3. **Exchange rate of USD to HKD**: when it reaches 7.75 or 7.85, house price will bloom or threathen.
+4. **Exchange rate of CNY to HKD**: when it changes, mainland capital will follow, which will greatly influence HK house market.   
+
+However, there are also two principles to bear in mind:
+1. **Correlation doesn't mean causation.** The indicators are not necissarily the cause of house price fluctuation.   
+2. **These indicators are also correlated with each other.** Therefore, it's important to consider them as a whole, instead of individually.
+
+With these in mind, when we are trying to depict the current and foreseeable house market, we should not only collect the data, but also gather the policy and the social-psychological trends towards this topic.  
+""")
+
+st.header('🔗Reference')
+st.markdown("""
+1. [Hong Kong Official Statistics by Subject - Census and Statistics Department, HKSAR](https://www.censtatd.gov.hk/en/page_8000.html)
+2. [Property Market Statistics - Rating and Valuation Department, HKSAR](https://www.rvd.gov.hk/en/publications/property_market_statistics.html)
+2. [香港房价：解析汇率、利率和房价的勾稽关系 - 雪球](https://xueqiu.com/7462290789/117244366)            
+""")
     
 # show raw data
 if st.toggle('Show raw data', value=False):
