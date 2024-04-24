@@ -82,7 +82,7 @@ TENDENCY_RANGES = [
 
 
 def write_tendency_desc(tr):
-    styled_pct_chg = f":green[+{tr['pct_change']:.2f}%]" if tr['tendency'] == 'rise' else f":red[{tr['pct_change']:.2f}%]"
+    styled_pct_chg = f":red[+{tr['pct_change']:.2f}%]" if tr['tendency'] == 'rise' else f":green[{tr['pct_change']:.2f}%]"
     st.markdown(f"""
         **Delta:** **{styled_pct_chg}**  
         **Duration:** {tr['duration']}  
@@ -93,7 +93,7 @@ def draw_tendency_rects(fig, with_annotation=True):
     for idx, tr in enumerate(TENDENCY_RANGES):
         # draw rect
         fig.add_vrect(x0=tr['start'], x1=tr['end'], 
-                         line_width=0, fillcolor="green" if tr['tendency'] == 'rise' else 'red', opacity=0.2,
+                         line_width=0, fillcolor="red" if tr['tendency'] == 'rise' else 'green', opacity=0.2,
                         #  annotation_text=f"{'+' if tr['tendency'] == 'rise' else ''}{tr['pct_change']:.2f}%" if with_annotation else '', 
                          annotation_text=f"{idx+1}." if with_annotation else '', 
                         #  annotation_position=("top left" if tr['tendency'] == 'rise' else 'top right'),)
@@ -488,7 +488,6 @@ with circulation_rate_tab:
     fig.update_layout(showlegend=False)
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=", maxsplit=1)[-1]))
     fig.add_hline(y=7.8, line_dash="dot", line_color="pink", row=1, annotation_text="baseline rate", annotation_position="bottom right")
-    fig.add_hline(y=1, line_dash="dot", line_color="pink", row=2, annotation_text="CNY:HKD=1:1", annotation_position="top right")
     draw_tendency_rects(fig, with_annotation=True)
     # add vacancy as bar
     # vacancy_bar = go.Bar(name='vacancy', x=merged_df.index, y=merged_df['house vacancy all (num)'], 
