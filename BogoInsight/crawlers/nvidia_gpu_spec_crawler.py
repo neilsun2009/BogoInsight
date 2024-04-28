@@ -194,6 +194,7 @@ class NvidiaGPUSpecsCrawler(BaseCrawler):
         # Reorder the columns
         new_order = ['period', 'usage', 'series', 'architecture', 'fab (nm)'] + [c for c in df.columns if c not in ['period', 'usage', 'series', 'architecture', 'fab (nm)']]
         df = df.reindex(new_order, axis=1)
+        df = df.sort_values('period')
 
         self.processed_data = df
         
