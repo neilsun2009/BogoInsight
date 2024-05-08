@@ -139,8 +139,9 @@ with st.spinner('Data preprocessing...'):
             'house vacancy growth all (% rate YoY)'
         ]], on='period', how='outer', sort=True)
     merged_df = merged_df.join(load_df(ds_household['path']).set_index('period')[[
-            'households (\'000)', 
-            'owner-occupier percentage (%)',
+            'households total (\'000)', 
+            'households private owner-occupiers (%)',
+            'households private owner-occupiers (\'000)',
             'household growth rate (%)'
         ]], on='period', how='outer', sort=True)
     merged_df = merged_df.join(load_df(ds_gdp['path']).set_index('period')[[
@@ -166,12 +167,19 @@ with st.spinner('Data preprocessing...'):
             'year end direct investment position KY (HK$B)', 
         ]], on='period', how='outer', sort=True)
     merged_df.set_index('period', inplace=True)
+    merged_df.index = pd.to_datetime(merged_df.index)
+    merged_df.sort_index(inplace=True)
     # select data from 1993
     merged_df = merged_df.loc['1995-01-01':]
     # additional column calculation
     merged_df['house total supply (num)'] = (merged_df['house vacancy all (num)'] * 100 / merged_df['house vacancy all (%)']).round()
     # merged_df['house total supply growth rate (% rate YoY)'] = (merged_df['house total supply (num)'].pct_change() * 100).round(2)
     merged_df['house occupied all (num)'] = merged_df['house total supply (num)'] - merged_df['house vacancy all (num)']
+    merged_df['house occupied by owners (num)'] = merged_df['households private owner-occupiers (\'000)'] * 1000
+    merged_df['house occupied by owners (num)'] = merged_df['house occupied by owners (num)'].shift(1)
+    merged_df['house occupied by tenants (num)'] = merged_df['house occupied all (num)'] - merged_df['house occupied by owners (num)']
+    merged_df['house occupied by tenants (%)'] = (merged_df['house occupied by tenants (num)'] / merged_df['house total supply (num)'] * 100).round(1)
+    merged_df['house occupied by owners (%)'] = (merged_df['house occupied by owners (num)'] / merged_df['house total supply (num)'] * 100).round(1)
     merged_df['P plan mortgage rate (% p.a.)'] = merged_df['best lending rate (% p.a.)'] - 1.75
     merged_df['H plan mortgage rate (% p.a.)'] = merged_df[['best lending rate (% p.a.)', 'HIBOR 1M (% p.a.)']].apply(
         lambda x: min(x['best lending rate (% p.a.)'] - 1.75, x['HIBOR 1M (% p.a.)'] + 1.3) if pd.notnull(x['best lending rate (% p.a.)']) and pd.notnull(x['HIBOR 1M (% p.a.)']) else np.nan, 
@@ -352,18 +360,21 @@ with vacancy_tab:
 
 with st.container():
     # bar graph
-    house_vacancy_df = merged_df[~merged_df['house vacancy all (num)'].isnull()]
+    house_vacancy_df = merged_df[~merged_df['house occupied by tenants (num)'].isnull()]
     house_vacancy_df.reset_index(drop=False, inplace=True)
     bar = px.bar(house_vacancy_df,
                     x='period',
-                    y=['house vacancy all (num)', 'house occupied all (num)'],
-                    title='See also: HK vacancy & occupied house number by year',
+                    y=['house vacancy all (%)', 'house occupied by tenants (%)', 'house occupied by owners (%)'],
+                    title='See also: HK vacancy & occupied house percentage by year',
                     labels={
                         "variable": "category", 
-                        "value": "number",
+                        "value": "percentage (%)",
                         "period": "year",},
+                    text_auto=True,
                     hover_data={
-                        'house vacancy all (%)': True,
+                        'house vacancy all (num)': ':,.0f',
+                        'house occupied by tenants (num)': ':,.0f',
+                        'house occupied by owners (num)': ':,.0f',
                         'period': "|%Y"},
                     barmode='stack',)
     bar.update_xaxes(minor_ticks='inside', showgrid=True)
@@ -389,7 +400,7 @@ with household_tab:
     st.write('**Household stats doesn\'t say much, as it\'s fairly steady**')
     # household
     fig = px.line(merged_df, 
-                 y=['house price all (idx 1999=100)', 'households (\'000)', 'owner-occupier percentage (%)'], 
+                 y=['house price all (idx 1999=100)', 'households total (\'000)', 'households private owner-occupiers (%)'], 
                  title='HK house price 🆚 household stats',
                  facet_col="variable",
                  facet_col_wrap=1,
@@ -399,7 +410,7 @@ with household_tab:
     fig.update_yaxes(matches=None)
     fig.update_layout(showlegend=False)
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=", maxsplit=1)[-1]))
-    fig.add_hline(y=50, line_dash="dot", line_color="pink", row=1)
+    # fig.add_hline(y=50, line_dash="dot", line_color="pink", row=1)
     draw_tendency_rects(fig, with_annotation=True)
     # add vacancy as bar
     # vacancy_bar = go.Bar(name='vacancy', x=merged_df.index, y=merged_df['house vacancy all (num)'], 
@@ -411,7 +422,7 @@ with household_tab:
         **Observation:**
         
         + Household number in HK has been increasing steadily in a linear manner.
-        + Owner-occupier percentage has been stable around 50%.
+        + Owner-occupier percentage for private properties has been stable around 36%.
         + These two points indicate that the demand for house is stably ever growing. The demand will increase more when investment demand is high.
     """)
     
