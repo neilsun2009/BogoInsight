@@ -26,6 +26,10 @@ CAT_EXCHANGE_RATE = 'hong_kong_exchange_rate'
 CAT_FOREIGN_INVEST = 'hong_kong_foreign_investment'
 CAT_HIBOR = 'hibor'
 
+# styling consts
+SINGLE_PLOT_HEIGHT = 400
+TOTAL_FACET_ROW_SPACING = 0.15
+
 # def rise & fall time ranges
 TENDENCY_RANGES = [
     {
@@ -221,7 +225,7 @@ with st.container():
                 labels={"period": "time", "value": "price index"},
                 )
     update_line_chart(line_chart)
-    line_chart.update_layout(showlegend=False)
+    line_chart.update_layout(showlegend=False, margin=dict(b=0))
     draw_tendency_rects(line_chart)
     
     rate_chart = px.line(merged_df[['house price growth all (% rate MoM)']], 
@@ -232,7 +236,7 @@ with st.container():
                 labels={"period": "time", "value": "%"},
                 )
     update_line_chart(rate_chart)
-    rate_chart.update_layout(showlegend=False)
+    rate_chart.update_layout(showlegend=False, margin=dict(b=0))
     draw_tendency_rects(rate_chart)
     
     st.plotly_chart(line_chart, theme="streamlit")
@@ -266,11 +270,12 @@ with gdp_tab:
                  title='HK house price 🆚 GPD growth rate',
                  facet_col="variable",
                  facet_col_wrap=1,
-                 facet_row_spacing=0.15,
-                 color=px.NO_COLOR,)
+                 facet_row_spacing=TOTAL_FACET_ROW_SPACING / 2,
+                 color=px.NO_COLOR,
+                 height=SINGLE_PLOT_HEIGHT * 2,)
     update_line_chart(fig)
     fig.update_yaxes(matches=None)
-    fig.update_layout(showlegend=False)
+    fig.update_layout(showlegend=False, margin=dict(b=0))
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=", maxsplit=1)[-1]))
     draw_tendency_rects(fig, with_annotation=True)
     # add vacancy as bar
@@ -305,11 +310,12 @@ with supply_tab:
                  title='HK house price 🆚 supply & vacancy',
                  facet_col="variable",
                  facet_col_wrap=1,
-                 facet_row_spacing=0.15,
-                 color=px.NO_COLOR,)
+                 facet_row_spacing=TOTAL_FACET_ROW_SPACING / 2,
+                 color=px.NO_COLOR,
+                 height=SINGLE_PLOT_HEIGHT * 2,)
     update_line_chart(fig)
     fig.update_yaxes(matches=None)
-    fig.update_layout(showlegend=False)
+    fig.update_layout(showlegend=False, margin=dict(b=0))
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=", maxsplit=1)[-1]))
     draw_tendency_rects(fig, with_annotation=True)
     # add vacancy as bar
@@ -334,11 +340,12 @@ with vacancy_tab:
                  title='HK house price 🆚 supply & vacancy',
                  facet_col="variable",
                  facet_col_wrap=1,
-                 facet_row_spacing=0.15,
-                 color=px.NO_COLOR,)
+                 facet_row_spacing=TOTAL_FACET_ROW_SPACING / 2,
+                 color=px.NO_COLOR,
+                 height=SINGLE_PLOT_HEIGHT * 2,)
     update_line_chart(fig)
     fig.update_yaxes(matches=None)
-    fig.update_layout(showlegend=False)
+    fig.update_layout(showlegend=False, margin=dict(b=0))
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=", maxsplit=1)[-1]))
     fig.add_hline(y=5, line_dash="dot", line_color="pink", row=1)
     draw_tendency_rects(fig, with_annotation=True)
@@ -387,6 +394,7 @@ with st.container():
             x=1
         ),
         hovermode="x unified",
+        margin=dict(b=0),
     )
     st.plotly_chart(bar, theme="streamlit")
 
@@ -404,11 +412,12 @@ with household_tab:
                  title='HK house price 🆚 household stats',
                  facet_col="variable",
                  facet_col_wrap=1,
-                 facet_row_spacing=0.15,
-                 color=px.NO_COLOR,)
+                 facet_row_spacing=TOTAL_FACET_ROW_SPACING / 3,
+                 color=px.NO_COLOR,
+                 height=SINGLE_PLOT_HEIGHT * 3,)
     update_line_chart(fig)
     fig.update_yaxes(matches=None)
-    fig.update_layout(showlegend=False)
+    fig.update_layout(showlegend=False, margin=dict(b=0))
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=", maxsplit=1)[-1]))
     # fig.add_hline(y=50, line_dash="dot", line_color="pink", row=1)
     draw_tendency_rects(fig, with_annotation=True)
@@ -439,7 +448,7 @@ with interest_rate_tab:
                     labels={"period": "time", "value": "price index"},
                     )
         update_line_chart(price_chart)
-        price_chart.update_layout(showlegend=False)
+        price_chart.update_layout(showlegend=False, margin=dict(b=0))
         draw_tendency_rects(price_chart)
         st.plotly_chart(price_chart, theme="streamlit")
     # interest rate
@@ -454,7 +463,7 @@ with interest_rate_tab:
                 labels={"period": "time", "value": "% p.a."},
                 hover_data={
                     'period': False,
-                })
+                },)
     update_line_chart(interest_chart)
     interest_chart.update_layout(
         showlegend=True, 
@@ -465,7 +474,8 @@ with interest_rate_tab:
             y=-0.2,
             xanchor="right",
             x=1
-        ))
+        ), 
+        margin=dict(b=0))
     draw_tendency_rects(interest_chart)
     interest_chart.for_each_annotation(lambda a: a.update(text=a.text.replace(" (% p.a.)", "")))
     st.plotly_chart(interest_chart, theme="streamlit")
@@ -492,11 +502,12 @@ with circulation_rate_tab:
                  title='HK house price 🆚 exchange rate of USD to HKD',
                  facet_col="variable",
                  facet_col_wrap=1,
-                 facet_row_spacing=0.15,
-                 color=px.NO_COLOR,)
+                 facet_row_spacing=TOTAL_FACET_ROW_SPACING / 2,
+                 color=px.NO_COLOR,
+                 height=SINGLE_PLOT_HEIGHT * 2,)
     update_line_chart(fig)
     fig.update_yaxes(matches=None)
-    fig.update_layout(showlegend=False)
+    fig.update_layout(showlegend=False, margin=dict(b=0))
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=", maxsplit=1)[-1]))
     fig.add_hline(y=7.8, line_dash="dot", line_color="pink", row=1, annotation_text="baseline rate", annotation_position="bottom right")
     draw_tendency_rects(fig, with_annotation=True)
@@ -526,11 +537,12 @@ with mainland_capital_tab:
                  title='HK house price 🆚 exchange rate of CNY to HKD',
                  facet_col="variable",
                  facet_col_wrap=1,
-                 facet_row_spacing=0.15,
-                 color=px.NO_COLOR,)
+                 facet_row_spacing=TOTAL_FACET_ROW_SPACING / 2,
+                 color=px.NO_COLOR,
+                 height=SINGLE_PLOT_HEIGHT * 2,)
     update_line_chart(fig)
     fig.update_yaxes(matches=None)
-    fig.update_layout(showlegend=False)
+    fig.update_layout(showlegend=False, margin=dict(b=0))
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=", maxsplit=1)[-1]))
     fig.add_hline(y=1, line_dash="dot", line_color="pink", row=1, annotation_text="CNY:HKD=1:1", annotation_position="top right")
     draw_tendency_rects(fig, with_annotation=True)
@@ -569,7 +581,7 @@ st.header('🔗Reference')
 st.markdown("""
 1. [Hong Kong Official Statistics by Subject - Census and Statistics Department, HKSAR](https://www.censtatd.gov.hk/en/page_8000.html)
 2. [Property Market Statistics - Rating and Valuation Department, HKSAR](https://www.rvd.gov.hk/en/publications/property_market_statistics.html)
-2. [香港房价：解析汇率、利率和房价的勾稽关系 - 雪球](https://xueqiu.com/7462290789/117244366)            
+2. [(Chinese) 香港房价：解析汇率、利率和房价的勾稽关系 - 雪球](https://xueqiu.com/7462290789/117244366)            
 """)
     
 # show raw data
