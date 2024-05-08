@@ -104,6 +104,10 @@ class NvidiaGPUSpecsCrawler(BaseCrawler):
                                     'TITAN X Pascal',
                                     'TITAN Xp',
                                 ],
+                                series_leads=[
+                                    'GeForce GTX 1080 Ti',
+                                    'TITAN Xp',
+                                ],
                                 append_value_map={
                                     'usage': 'desktop',
                                     'series': 'GeForce 10 series',
@@ -111,6 +115,9 @@ class NvidiaGPUSpecsCrawler(BaseCrawler):
                                 }),
             self._parse_section(soup, 'Volta_series', 
                                 sel_model_names=[
+                                    'Nvidia TITAN V',
+                                ],
+                                series_leads=[
                                     'Nvidia TITAN V',
                                 ],
                                 append_value_map={
@@ -122,6 +129,10 @@ class NvidiaGPUSpecsCrawler(BaseCrawler):
                                 sel_model_names=[
                                     'GeForce RTX 2070',
                                     'GeForce RTX 2080',
+                                    'GeForce RTX 2080 Ti',
+                                    'Nvidia TITAN RTX', 
+                                ],
+                                series_leads=[
                                     'GeForce RTX 2080 Ti',
                                     'Nvidia TITAN RTX', 
                                 ],
@@ -139,6 +150,9 @@ class NvidiaGPUSpecsCrawler(BaseCrawler):
                                     'GeForce RTX 3090',
                                     'GeForce RTX 3090 Ti',
                                 ],
+                                series_leads=[
+                                    'GeForce RTX 3090 Ti',
+                                ],
                                 append_value_map={
                                     'usage': 'desktop',
                                     'series': 'GeForce 30 series',
@@ -149,6 +163,9 @@ class NvidiaGPUSpecsCrawler(BaseCrawler):
                                     'GeForce RTX 4070',
                                     'GeForce RTX 4070 Ti',
                                     'GeForce RTX 4080',
+                                    'GeForce RTX 4090',
+                                ],
+                                series_leads=[
                                     'GeForce RTX 4090',
                                 ],
                                 append_value_map={
@@ -175,6 +192,13 @@ class NvidiaGPUSpecsCrawler(BaseCrawler):
                                     'H100 GPU accelerator (SXM card)',
                                     'L40 GPU accelerator',
                                 ],
+                                series_leads=[
+                                    'P100 GPU accelerator (mezzanine)',
+                                    'V100 GPU accelerator (mezzanine) - 32G',
+                                    'A100 GPU accelerator (PCIe card) - 80G',
+                                    'H100 GPU accelerator (SXM card)',
+                                    'L40 GPU accelerator',
+                                ],
                                 append_value_map={
                                     'usage': 'data center',
                                     'series': 'Data Center GPUs',
@@ -198,7 +222,7 @@ class NvidiaGPUSpecsCrawler(BaseCrawler):
 
         self.processed_data = df
         
-    def _parse_section(self, soup, header, sel_model_names, append_value_map, column_name_map=COLUMN_NAME_MAP_DESKTOP):
+    def _parse_section(self, soup, header, sel_model_names, append_value_map, column_name_map=COLUMN_NAME_MAP_DESKTOP, series_leads=None):
         # Find the section by title
         section = soup.find('span', {'class': 'mw-headline', 'id': header}).parent
         
@@ -317,6 +341,10 @@ class NvidiaGPUSpecsCrawler(BaseCrawler):
 
         # Handle the case where there is no duplicate for the first occurrence
         table['model'] = table['model'].str.replace(' v1', '', regex=False)
+        
+        if series_leads is not None:
+            # Add a new column "series_lead" to indicate the leading model of the series
+            table['series lead'] = table['model'].isin(series_leads)
         return table
         
 if __name__ == "__main__":

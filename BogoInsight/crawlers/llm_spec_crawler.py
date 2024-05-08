@@ -44,17 +44,29 @@ class LLMSpecsCrawler(BaseCrawler):
     ]
     
     AUXILIARY_INFOS = {
+        'GPT-1': {
+            'series first': True,
+            'series lead': True,
+        },
         'BERT': {
             'corpus size (B tokens)': 5.4,
+            'series first': True,
+            'series lead': True,
         },
         'T5': {
             'corpus size (B tokens)': 34,
+            'series first': True,
+            'series lead': True,
         },
         'Chinchilla': {
             'corpus size (B tokens)': 1400,
+            'series first': True,
+            'series lead': True,
         },
         'PaLM': {
             'corpus size (B tokens)': 768,
+            'series first': True,
+            'series lead': True,
         },
         'PaLM 2': {
             'period': pd.to_datetime('2023-05-10'),
@@ -63,6 +75,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'input token price ($/M tkns)': 0.25,
             'output token price ($/M tkns)': 0.5,
             'corpus size (B tokens)': 3600,
+            'series first': True,
+            'series lead': True,
         },
         'Gemma': {
             'period': pd.to_datetime('2024-02-21'),
@@ -71,6 +85,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'input token price ($/M tkns)': 0,
             'output token price ($/M tkns)': 0,
             'corpus size (B tokens)': 6000,
+            'series first': True,
+            'series lead': True,
         },
         'Gemini 1.0': {
             'period': pd.to_datetime('2023-12-23'),
@@ -80,6 +96,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'input token price ($/M tkns)': 0.125,
             'output token price ($/M tkns)': 0.375,
             'input image price ($/K imgs)': 2.5,
+            'series first': True,
+            'series lead': True,
         },
         'Gemini 1.5': {
             'period': pd.to_datetime('2024-02-15'),
@@ -89,12 +107,18 @@ class LLMSpecsCrawler(BaseCrawler):
             'input token price ($/M tkns)': 2.5,
             'output token price ($/M tkns)': 7.5,
             'input image price ($/K imgs)': 2.65,
+            'series first': True,
+            'series lead': True,
         },
         'Ernie 3.0 Titan': {
             'corpus size (B tokens)': 4000,
+            'series first': True,
+            'series lead': True,
         },
         'LLaMA': {
             'corpus size (B tokens)': 1400,
+            'series first': True,
+            'series lead': True,
         },
         'Llama 2 13B': {
             'period': pd.to_datetime('2023-07-18'),
@@ -104,6 +128,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'input token price ($/M tkns)': 0.13,
             'output token price ($/M tkns)': 0.13,
             'corpus size (B tokens)': 2000,
+            'series first': False,
+            'series lead': False,
         },
         'Llama 2 70B': {
             'period': pd.to_datetime('2023-07-18'),
@@ -113,6 +139,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'input token price ($/M tkns)': 0.64,
             'output token price ($/M tkns)': 0.8,
             'corpus size (B tokens)': 2000,
+            'series first': True,
+            'series lead': True,
         },
         'Llama 3 8B': {
             'period': pd.to_datetime('2024-04-18'),
@@ -124,6 +152,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'input token price ($/M tkns)': 0.07,
             'output token price ($/M tkns)': 0.07,
             'corpus size (B tokens)': 15000,
+            'series first': False,
+            'series lead': False,
         },
         'Llama 3 70B': {
             'period': pd.to_datetime('2024-04-18'),
@@ -135,9 +165,17 @@ class LLMSpecsCrawler(BaseCrawler):
             'input token price ($/M tkns)': 0.59,
             'output token price ($/M tkns)': 0.79,
             'corpus size (B tokens)': 15000,
+            'series first': True,
+            'series lead': True,
         },
         'PanGu-Σ': {
             'corpus size (B tokens)': 329,
+            'series first': True,
+            'series lead': True,
+        },
+        'Grok-1': {
+            'series first': True,
+            'series lead': True,
         },
         'Mistral 7B': {
             'period': pd.to_datetime('2023-09-27'),
@@ -145,6 +183,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 32.768,
             'input token price ($/M tkns)': 0,
             'output token price ($/M tkns)': 0,
+            'series first': True,
+            'series lead': True,
         },
         'Mixtral 8x7B': {
             'period': pd.to_datetime('2023-12-11'),
@@ -152,6 +192,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 32.768,
             'input token price ($/M tkns)': 0.24,
             'output token price ($/M tkns)': 0.24,
+            'series first': True,
+            'series lead': True,
         },
         'Mistral Medium': {
             'period': pd.to_datetime('2024-02-26'),
@@ -162,6 +204,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 32,
             'input token price ($/M tkns)': 2.7,
             'output token price ($/M tkns)': 8.1,
+            'series first': False,
+            'series lead': False,
         },
         'Mistral Large': {
             'period': pd.to_datetime('2024-02-26'),
@@ -172,6 +216,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 32,
             'input token price ($/M tkns)': 8,
             'output token price ($/M tkns)': 24,
+            'series first': True,
+            'series lead': True,
         },
         'Claude': {
             'period': pd.to_datetime('2022-11-28'),
@@ -180,6 +226,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'input token price ($/M tkns)': 8,
             'output token price ($/M tkns)': 24,
             'corpus size (B tokens)': 400,
+            'series first': True,
+            'series lead': True,
         },
         'Claude 2': {
             'period': pd.to_datetime('2023-07-11'),
@@ -188,6 +236,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 4.096,
             'input token price ($/M tkns)': 8,
             'output token price ($/M tkns)': 24,
+            'series first': True,
+            'series lead': True,
         },
         'Claude 2.1': {
             'period': pd.to_datetime('2023-11-23'),
@@ -196,6 +246,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 4.096,
             'input token price ($/M tkns)': 8,
             'output token price ($/M tkns)': 24,
+            'series first': True,
+            'series lead': True,
         },
         'Claude 3 Haiku': {
             'period': pd.to_datetime('2024-03-04'),
@@ -205,6 +257,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'input token price ($/M tkns)': 0.25,
             'output token price ($/M tkns)': 1.25,
             'input image price ($/K imgs)': 0.4,
+            'series first': True,
+            'series lead': True,
         },
         'Claude 3 Sonnet': {
             'period': pd.to_datetime('2024-03-04'),
@@ -214,6 +268,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'input token price ($/M tkns)': 3,
             'output token price ($/M tkns)': 15,
             'input image price ($/K imgs)': 4.8,
+            'series first': False,
+            'series lead': False,
         },
         'Claude 3 Opus': {
             'period': pd.to_datetime('2024-03-04'),
@@ -223,12 +279,18 @@ class LLMSpecsCrawler(BaseCrawler):
             'input token price ($/M tkns)': 15,
             'output token price ($/M tkns)': 75,
             'input image price ($/K imgs)': 24,
+            'series first': False,
+            'series lead': False,
         },
         'GPT-2': {
             'corpus size (B tokens)': 10,
+            'series first': True,
+            'series lead': True,
         },
         'GPT-3': {
             'corpus size (B tokens)': 300,
+            'series first': True,
+            'series lead': True,
         },
         'GPT-3.5 Turbo': {
             'period': pd.to_datetime('2022-11-28'),
@@ -239,6 +301,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 4.096,
             'input token price ($/M tkns)': 0.5,
             'output token price ($/M tkns)': 1.5,
+            'series first': True,
+            'series lead': False,
         },
         'GPT-3.5 Turbo 0301': {
             'period': pd.to_datetime('2023-03-01'),
@@ -249,6 +313,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 4.096,
             'input token price ($/M tkns)': 1,
             'output token price ($/M tkns)': 2,
+            'series first': False,
+            'series lead': False,
         },
         'GPT-3.5 Turbo 16K 0613': {
             'period': pd.to_datetime('2023-06-13'),
@@ -259,6 +325,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 4.096,
             'input token price ($/M tkns)': 3,
             'output token price ($/M tkns)': 4,
+            'series first': False,
+            'series lead': False,
         },
         'GPT-3.5 Turbo 16K 1106': {
             'period': pd.to_datetime('2023-11-06'),
@@ -269,6 +337,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 4.096,
             'input token price ($/M tkns)': 1,
             'output token price ($/M tkns)': 2,
+            'series first': False,
+            'series lead': False,
         },
         'GPT-3.5 Turbo 16K 0125': {
             'period': pd.to_datetime('2024-01-25'),
@@ -279,6 +349,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 4.096,
             'input token price ($/M tkns)': 0.5,
             'output token price ($/M tkns)': 1.5,
+            'series first': False,
+            'series lead': True,
         },
         'GPT-4': {
             'period': pd.to_datetime('2023-03-14'),
@@ -289,6 +361,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 4.096,
             'input token price ($/M tkns)': 30,
             'output token price ($/M tkns)': 60,
+            'series first': False,
+            'series lead': False,
         },
         'GPT-4 32K': {
             'period': pd.to_datetime('2023-03-14'),
@@ -299,6 +373,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 4.096,
             'input token price ($/M tkns)': 60,
             'output token price ($/M tkns)': 120,
+            'series first': True,
+            'series lead': False,
         },
         'GPT-4 0613': {
             'period': pd.to_datetime('2023-06-13'),
@@ -309,6 +385,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 4.096,
             'input token price ($/M tkns)': 30,
             'output token price ($/M tkns)': 60,
+            'series first': False,
+            'series lead': False,
         },
         'GPT-4 32K 0613': {
             'period': pd.to_datetime('2023-06-13'),
@@ -319,6 +397,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 4.096,
             'input token price ($/M tkns)': 60,
             'output token price ($/M tkns)': 120,
+            'series first': False,
+            'series lead': False,
         },
         'GPT-4 Turbo': {
             'period': pd.to_datetime('2023-11-06'),
@@ -329,6 +409,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 4.096,
             'input token price ($/M tkns)': 10,
             'output token price ($/M tkns)': 30,
+            'series first': False,
+            'series lead': False,
         },
         'GPT-4 Turbo 0125': {
             'period': pd.to_datetime('2024-01-25'),
@@ -339,6 +421,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 4.096,
             'input token price ($/M tkns)': 10,
             'output token price ($/M tkns)': 30,
+            'series first': False,
+            'series lead': False,
         },
         'GPT-4 Turbo 2024-04-09': {
             'period': pd.to_datetime('2024-04-09'),
@@ -349,6 +433,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 4.096,
             'input token price ($/M tkns)': 10,
             'output token price ($/M tkns)': 30,
+            'series first': False,
+            'series lead': True,
         },
         'GPT-4 Vision Preview': {
             'period': pd.to_datetime('2023-09-25'),
@@ -360,6 +446,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'input token price ($/M tkns)': 10,
             'output token price ($/M tkns)': 30,
             'input image price ($/K imgs)': 14.45,
+            'series first': True,
+            'series lead': True,
         },
         'Ernie 3.5': {
             'period': pd.to_datetime('2023-06-27'),
@@ -370,6 +458,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 8.192,
             'input token price ($/M tkns)': 1.7,
             'output token price ($/M tkns)': 1.7,
+            'series first': True,
+            'series lead': True,
         },
         'Ernie 4.0': {
             'period': pd.to_datetime('2024-04-16'),
@@ -380,6 +470,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 8.192,
             'input token price ($/M tkns)': 2.1,
             'output token price ($/M tkns)': 4.2,
+            'series first': True,
+            'series lead': True,
         },
         'Qwen 1.8B': {
             'period': pd.to_datetime('2023-11-30'),
@@ -390,6 +482,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 2,
             'input token price ($/M tkns)': 0,
             'output token price ($/M tkns)': 0,
+            'series first': False,
+            'series lead': False,
         },
         'Qwen 7B': {
             'period': pd.to_datetime('2023-08-03'),
@@ -400,6 +494,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 2,
             'input token price ($/M tkns)': 0.85,
             'output token price ($/M tkns)': 0.85,
+            'series first': False,
+            'series lead': False,
         },
         'Qwen 14B': {
             'period': pd.to_datetime('2023-09-25'),
@@ -410,6 +506,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 2,
             'input token price ($/M tkns)': 1.1,
             'output token price ($/M tkns)': 1.1,
+            'series first': False,
+            'series lead': False,
         },
         'Qwen 72B': {
             'period': pd.to_datetime('2023-11-30'),
@@ -420,6 +518,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 2,
             'input token price ($/M tkns)': 2.8,
             'output token price ($/M tkns)': 2.8,
+            'series first': True,
+            'series lead': True,
         },
         'Qwen1.5 0.5B': {
             'period': pd.to_datetime('2024-02-06'),
@@ -430,6 +530,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 2,
             'input token price ($/M tkns)': 0,
             'output token price ($/M tkns)': 0,
+            'series first': False,
+            'series lead': False,
         },
         'Qwen1.5 1.8B': {
             'period': pd.to_datetime('2024-02-06'),
@@ -440,6 +542,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 2,
             'input token price ($/M tkns)': 0,
             'output token price ($/M tkns)': 0,
+            'series first': False,
+            'series lead': False,
         },
         'Qwen1.5 7B': {
             'period': pd.to_datetime('2024-02-06'),
@@ -450,6 +554,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 2,
             'input token price ($/M tkns)': 0.85,
             'output token price ($/M tkns)': 0.85,
+            'series first': False,
+            'series lead': False,
         },
         'Qwen1.5 14B': {
             'period': pd.to_datetime('2024-02-06'),
@@ -460,6 +566,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 2,
             'input token price ($/M tkns)': 1.1,
             'output token price ($/M tkns)': 1.1,
+            'series first': False,
+            'series lead': False,
         },
         'Qwen1.5 32B': {
             'period': pd.to_datetime('2024-02-06'),
@@ -470,6 +578,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 2,
             'input token price ($/M tkns)': 0, # temp
             'output token price ($/M tkns)': 0, # temp
+            'series first': False,
+            'series lead': False,
         },
         'Qwen1.5 72B': {
             'period': pd.to_datetime('2024-02-06'),
@@ -480,6 +590,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 2,
             'input token price ($/M tkns)': 2.8,
             'output token price ($/M tkns)': 2.8,
+            'series first': True,
+            'series lead': False,
         },
         'Qwen1.5 110B': {
             'period': pd.to_datetime('2024-04-20'),
@@ -490,6 +602,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 2,
             'input token price ($/M tkns)': 0, # temp
             'output token price ($/M tkns)': 0, # temp
+            'series first': False,
+            'series lead': True,
         },
         'Moonshot V1 8K': {
             'period': pd.to_datetime('2023-11-16'),
@@ -500,6 +614,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 8,
             'input token price ($/M tkns)': 1.7,
             'output token price ($/M tkns)': 1.7,
+            'series first': False,
+            'series lead': False,
         },
         'Moonshot V1 32K': {
             'period': pd.to_datetime('2023-11-16'),
@@ -510,6 +626,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 32,
             'input token price ($/M tkns)': 3.4,
             'output token price ($/M tkns)': 3.4,
+            'series first': False,
+            'series lead': False,
         },
         'Moonshot V1 128K': {
             'period': pd.to_datetime('2023-11-16'),
@@ -520,6 +638,8 @@ class LLMSpecsCrawler(BaseCrawler):
             'max output tokens (K tkns)': 128,
             'input token price ($/M tkns)': 8.5,
             'output token price ($/M tkns)': 8.5,
+            'series first': True,
+            'series lead': True,
         },
     }
     
