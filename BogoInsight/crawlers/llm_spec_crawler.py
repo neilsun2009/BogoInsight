@@ -19,6 +19,8 @@ class LLMSpecsCrawler(BaseCrawler):
     
     URL = "https://en.wikipedia.org/wiki/Large_language_model"
     
+    ADDITIONAL_DATA_XLSX = "llm_additional_data.xlsx"
+    
     COLUMN_NAME_MAP = {
         'Name': 'name',
         'Release date': 'period',
@@ -742,8 +744,9 @@ class LLMSpecsCrawler(BaseCrawler):
         df = df.set_index('name')
         
         # Add additional information
-        # Convert AUXILIARY_INFOS to a DataFrame
-        aux_df = pd.DataFrame.from_dict(self.AUXILIARY_INFOS, orient='index')
+        # Convert additional data to a DataFrame
+        aux_df = pd.read_excel(self.ADDITIONAL_DATA_XLSX)
+        aux_df = aux_df.set_index('name')
         # Update existing rows and columns
         df = aux_df.combine_first(df)
         # Append new rows

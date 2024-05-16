@@ -40,9 +40,12 @@ df_llm = load_df(ds_llm['path'])
 df_nvidia_gpu.set_index('model', inplace=True)
 df_llm.set_index('name', inplace=True)
 
+# convert approximate values to float
+df_llm['parameters (B)'] = df_llm['parameters (B)'].str.replace('\*$', '', regex=True).astype(float)
+
 # observe GPU specs
 with st.container():
-    st.header('![NVIDIA logo](https://nvidianews.nvidia.com/media/sites/219/images/favicon.ico)NVIDIA GPU over the years')
+    st.header('![NVIDIA logo](https://nvidianews.nvidia.com/media/sites/219/images/favicon.ico)NVIDIA GPUs over the years')
     
     selectable_columns = [
         'processing power fp32 (TFLOPS)',
@@ -151,7 +154,7 @@ with st.container():
     if len(company_filter):
         selected_df = selected_df[selected_df['developer'].isin(company_filter)]
     # select period range
-    period_range = pd.date_range(df_llm['period'].min(), pd.to_datetime(datetime.now()), freq='MS')
+    period_range = pd.date_range(df_llm['period'].min(), pd.to_datetime(datetime.now()) + pd.DateOffset(months=1), freq='MS')
     start_period, end_period = st.select_slider(
         'Select period range',
         options = period_range,
@@ -204,6 +207,7 @@ with st.container():
     st.plotly_chart(fig, theme="streamlit")
     if size_col != 'none':
         st.caption(f'Point size depicts {size_col}.')
+        st.caption('Parameter values for proprietary models are mostly estimated.')
     
     # show raw data
     if st.toggle('Show raw data', key='show-raw-llm', value=False):
