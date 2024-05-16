@@ -1,2 +1,4 @@
 mysql_data/
 file.log
+package-lock.json
+node_modules/

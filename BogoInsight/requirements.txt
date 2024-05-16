@@ -3,3 +3,4 @@ SQLAlchemy==2.0.25
 streamlit==1.32.2
 streamlit-extras==0.4.0
 xlrd==2.0.1
+plotly==5.22.0
