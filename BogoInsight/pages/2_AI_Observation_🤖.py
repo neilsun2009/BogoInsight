@@ -252,7 +252,7 @@ with st.container():
                 'MMMU', 'MathVista',
             ],
             default_dimensions = [
-                'LMSYS Arena Elo', 'MMLU', 'MATH', 'HumanEval'
+                'MMLU', 'MATH', 'HumanEval'
             ]
         ),
         dict(
