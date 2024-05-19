@@ -311,6 +311,7 @@ with st.container():
             else:
                 df_arena = df_llm.copy()
                 df_arena['parameters (B)'] = df_arena['parameters (B)'].str.replace('\*$', '', regex=True).astype(float)
+                df_arena = df_arena[dimensions]
                 df_arena.dropna(how='all', inplace=True)
                 models = st.multiselect('Select models', options=df_arena.index.unique(), 
                                         default=None, key=f'arena-model-{idx}')
