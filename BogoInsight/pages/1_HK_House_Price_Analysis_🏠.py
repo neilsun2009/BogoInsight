@@ -27,7 +27,7 @@ CAT_FOREIGN_INVEST = 'hong_kong_foreign_investment'
 CAT_HIBOR = 'hibor'
 
 # styling consts
-SINGLE_PLOT_HEIGHT = 400
+SINGLE_SUBPLOT_HEIGHT = 400
 TOTAL_FACET_ROW_SPACING = 0.15
 
 # def rise & fall time ranges
@@ -272,7 +272,7 @@ with gdp_tab:
                  facet_col_wrap=1,
                  facet_row_spacing=TOTAL_FACET_ROW_SPACING / 2,
                  color=px.NO_COLOR,
-                 height=SINGLE_PLOT_HEIGHT * 2,)
+                 height=SINGLE_SUBPLOT_HEIGHT * 2,)
     update_line_chart(fig)
     fig.update_yaxes(matches=None)
     fig.update_layout(showlegend=False, margin=dict(b=0))
@@ -312,7 +312,7 @@ with supply_tab:
                  facet_col_wrap=1,
                  facet_row_spacing=TOTAL_FACET_ROW_SPACING / 2,
                  color=px.NO_COLOR,
-                 height=SINGLE_PLOT_HEIGHT * 2,)
+                 height=SINGLE_SUBPLOT_HEIGHT * 2,)
     update_line_chart(fig)
     fig.update_yaxes(matches=None)
     fig.update_layout(showlegend=False, margin=dict(b=0))
@@ -342,7 +342,7 @@ with vacancy_tab:
                  facet_col_wrap=1,
                  facet_row_spacing=TOTAL_FACET_ROW_SPACING / 2,
                  color=px.NO_COLOR,
-                 height=SINGLE_PLOT_HEIGHT * 2,)
+                 height=SINGLE_SUBPLOT_HEIGHT * 2,)
     update_line_chart(fig)
     fig.update_yaxes(matches=None)
     fig.update_layout(showlegend=False, margin=dict(b=0))
@@ -414,7 +414,7 @@ with household_tab:
                  facet_col_wrap=1,
                  facet_row_spacing=TOTAL_FACET_ROW_SPACING / 3,
                  color=px.NO_COLOR,
-                 height=SINGLE_PLOT_HEIGHT * 3,)
+                 height=SINGLE_SUBPLOT_HEIGHT * 3,)
     update_line_chart(fig)
     fig.update_yaxes(matches=None)
     fig.update_layout(showlegend=False, margin=dict(b=0))
@@ -504,7 +504,7 @@ with circulation_rate_tab:
                  facet_col_wrap=1,
                  facet_row_spacing=TOTAL_FACET_ROW_SPACING / 2,
                  color=px.NO_COLOR,
-                 height=SINGLE_PLOT_HEIGHT * 2,)
+                 height=SINGLE_SUBPLOT_HEIGHT * 2,)
     update_line_chart(fig)
     fig.update_yaxes(matches=None)
     fig.update_layout(showlegend=False, margin=dict(b=0))
@@ -539,7 +539,7 @@ with mainland_capital_tab:
                  facet_col_wrap=1,
                  facet_row_spacing=TOTAL_FACET_ROW_SPACING / 2,
                  color=px.NO_COLOR,
-                 height=SINGLE_PLOT_HEIGHT * 2,)
+                 height=SINGLE_SUBPLOT_HEIGHT * 2,)
     update_line_chart(fig)
     fig.update_yaxes(matches=None)
     fig.update_layout(showlegend=False, margin=dict(b=0))
