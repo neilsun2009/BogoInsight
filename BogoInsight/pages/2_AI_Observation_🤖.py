@@ -22,6 +22,7 @@ CAT_LLM = 'llm_specs'
 
 # styling consts
 SINGLE_SUBPLOT_HEIGHT = 300
+RANGE_100_BENCHMARKS = ['MMLU', 'MATH', 'HumanEval', 'DROP', 'BFCL', 'OpenCompass avg', 'OpenCompass CN', 'OpenCompass EN', 'MMMU', 'MathVista']
 
 st.set_page_config(
     page_title='AI Observation - BogoInsight', 
@@ -50,7 +51,7 @@ with st.container():
     st.header('![NVIDIA logo](https://nvidianews.nvidia.com/media/sites/219/images/favicon.ico)NVIDIA GPUs over the years')
     
     # general observation
-    st.subheader('General observation')
+    st.subheader('General observation', divider='grey')
     st.write('Set parameters here:')
     with st.container(height=400):
         selectable_columns = [
@@ -121,15 +122,22 @@ with st.container():
     st.caption(f'Point size depicts {size_col}.')
     
     # show raw data
-    if st.toggle('Show raw data', key='show-raw-gpu', value=False):
-        st.dataframe(df_nvidia_gpu)
+    st.subheader('Raw data', divider='grey')
+    # if st.toggle('Show raw data', key='show-raw-llm', value=False):
+    column_config = {
+        "series lead": st.column_config.CheckboxColumn(
+            default=False,
+        ),
+    }
+    st.dataframe(df_nvidia_gpu, column_config=column_config)
+    
         
 # observe LLMs
 with st.container():
     st.header('📚LLMs over the years')
     
     # general observation
-    st.subheader('General observation')
+    st.subheader('General observation', divider='grey')
     st.write('Set parameters here:')
     with st.container(height=400):
         selectable_columns = [
@@ -242,7 +250,7 @@ with st.container():
         st.caption('Parameter values for proprietary models are mostly estimated.')
     
     # model arena
-    st.subheader('Model arena')
+    st.subheader('Model arena', divider='grey')
     arena_tab_configs = [
         dict(
             name='⚔️Benchmark arena',
@@ -264,6 +272,7 @@ with st.container():
             ],
             default_dimensions = [
                 'input token price ($/M tkns)', 'output token price ($/M tkns)',
+                'input image price ($/K imgs)',
             ]
         ),
         dict(
@@ -312,9 +321,10 @@ with st.container():
                 df_arena = df_llm.copy()
                 df_arena['parameters (B)'] = df_arena['parameters (B)'].str.replace('\*$', '', regex=True).astype(float)
                 df_arena = df_arena[dimensions]
-                df_arena.dropna(how='all', inplace=True)
+                # df_arena.dropna(how='all', inplace=True)
                 models = st.multiselect('Select models', options=df_arena.index.unique(), 
-                                        default=None, key=f'arena-model-{idx}')
+                                        default=['GPT-4o', 'Gemini 1.5 Pro 2024-05', 'Claude 3 Opus', 'Llama 3 70B', 'Qwen1.5 110B'], 
+                                        key=f'arena-model-{idx}')
                 if len(models) < 1:
                     st.warning('Please select at least 1 model.')
                 else:
@@ -326,6 +336,7 @@ with st.container():
                         y=dimensions,
                         title='Bar chart',
                         color=df_arena_sel.index,
+                        text_auto=True,
                         facet_col="variable",
                         facet_col_wrap=3,
                         facet_row_spacing=0.1,
@@ -344,8 +355,12 @@ with st.container():
                     bar_fig.update_layout(
                         showlegend=True, 
                         margin=dict(b=0),
-                        legend_title_text=f'Model'
+                        legend_title_text=f'Model',
                     )
+                    for d_idx, d in enumerate(dimensions):
+                        if d in RANGE_100_BENCHMARKS:
+                            bar_fig.update_yaxes(range=[0, 101], row=math.ceil(len(dimensions) / 3) - math.floor(d_idx / 3), col=d_idx % 3 + 1)
+                            # bar_fig.update_yaxes(range=[0, 101], row=1, col=1)
                     bar_fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
                     st.plotly_chart(bar_fig, theme="streamlit")
                     # radar chart
@@ -362,20 +377,20 @@ with st.container():
                         polar=dict(
                             radialaxis=dict(
                                 visible=True,
-                                autorange=True,
+                                # autorange=True,
                                 # showticklabels=False,
                                 showline=False,
                                 ticks='',
-                                # range=[0, 5]
+                                range=[0, 100] if idx == 0 and 'LMSYS Arena Elo' not in dimensions else None,
                             ),
                         ),
-                        margin=dict(b=0),
+                        margin=dict(b=20),
                         showlegend=True,
                     )
                     st.plotly_chart(radar_fig, theme="streamlit")
 
     # benchmarks
-    st.subheader('Meet the benchmarks')
+    st.subheader('Meet the benchmarks', divider='grey')
     benchmark_configs = [
         dict(
             name='🫅Subjective',
@@ -515,8 +530,20 @@ with st.container():
                                      format_func=lambda x: x['name'],
                                      index=0, key=f'benchmark-bm-{idx}')
             st.markdown(bm_config['desc'])
-            df_bm = df_llm.copy()[[bm_config['name']]]
-            df_bm.dropna(how='all', inplace=True)
+            
+            df_bm = df_llm.copy()
+            is_open_source = st.selectbox('Open source or close source', 
+                                          ['All', 'Open source', 'Close source'], 
+                                          index=0, key=f'benchmark-source-{idx}')
+            if is_open_source == 'Open source':
+                df_bm = df_bm[df_bm['source access'] == 'open source']
+                title = f'Top 10 open source models according to {bm_config["name"]}'
+            elif is_open_source == 'Close source':
+                df_bm = df_bm[df_bm['source access'] == 'close source']
+                title = f'Top 10 close source models according to {bm_config["name"]}'
+            else:
+                title = f'Top 10 models according to {bm_config["name"]}'
+            df_bm.dropna(subset=[bm_config['name']], inplace=True)
             df_bm = df_bm.sort_values(by=bm_config['name'], ascending=False)
             df_bm = df_bm.head(10)
             # bar chart     
@@ -526,20 +553,21 @@ with st.container():
                 y=[bm_config['name']],
                 title=f'Top 10 models according to {bm_config["name"]}',
                 color=df_bm.index,
-                # facet_col="variable",
-                # facet_col_wrap=1,
-                # facet_row_spacing=0.1,
-                # facet_col_spacing=0.1,
-                # height=SINGLE_SUBPLOT_HEIGHT * math.ceil(len(dimensions) / 3),
+                text_auto=True,
+                hover_name=df_bm.index,
+                hover_data=set(df_bm.columns) - set([bm_config['name']]),
+                height=SINGLE_SUBPLOT_HEIGHT * 2,
             )
             bar_fig.update_yaxes(
                 matches=None,
                 showticklabels=True,
+                title_text='value' if bm_config['name'] == 'LMSYS Arena Elo' else 'accuracy (%)',
+                range=[0, 101] if bm_config['name'] in RANGE_100_BENCHMARKS else None,
             )
             bar_fig.update_xaxes(
                 # matches=None,
                 showticklabels=True,
-                title_text='models',
+                title_text='model',
             )
             bar_fig.update_layout(
                 showlegend=False, 
@@ -551,7 +579,28 @@ with st.container():
                
     
     # show raw data
-    if st.toggle('Show raw data', key='show-raw-llm', value=False):
-        st.dataframe(df_llm)
-        st.caption('\* estimated value')
+    st.subheader('Raw data', divider='grey')
+    # if st.toggle('Show raw data', key='show-raw-llm', value=False):
+    column_config = {
+        "has audio": st.column_config.CheckboxColumn(
+            default=False,
+        ),
+        "has visual": st.column_config.CheckboxColumn(
+            default=False,
+        ),
+        "series first": st.column_config.CheckboxColumn(
+            default=False,
+        ),
+        "series lead": st.column_config.CheckboxColumn(
+            default=False,
+        ),
+    }
+    for col in RANGE_100_BENCHMARKS:
+        column_config[col] = st.column_config.ProgressColumn(
+            format="%f",
+            min_value=0,
+            max_value=100,
+        )
+    st.dataframe(df_llm, column_config=column_config)
+    st.caption('\* estimated value')
         

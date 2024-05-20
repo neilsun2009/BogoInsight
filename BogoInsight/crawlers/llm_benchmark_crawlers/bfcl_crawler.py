@@ -40,7 +40,7 @@ class BFCLCrawler(BaseCrawler):
     
     def __init__(self):
         super().__init__(
-            topic='LMSYS Arena Elo',
+            topic='BFCL benchmark',
             desc="""
                 The Berkeley Function Calling Leaderboard (also called Berkeley Tool Calling Leaderboard) evaluates the LLM's ability to call functions (aka tools) accurately.
                 Which also includes the avg cost and latency data.

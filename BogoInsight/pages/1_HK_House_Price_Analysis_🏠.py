@@ -258,7 +258,7 @@ with st.container():
 st.header('🔬Analysis')
 
 # Observe macro economy
-st.subheader('Macro economy factors')
+st.subheader('Macro economy factors', divider='grey')
 [gdp_tab, ] = st.tabs(['💹GDP',])
 
 # GDP
@@ -298,7 +298,7 @@ with gdp_tab:
     
 
 # Observe supply
-st.subheader('Supply factors')
+st.subheader('Supply factors', divider='grey')
 [supply_tab, vacancy_tab] = st.tabs(['🏘️House supply', '🧳House vacancy'])
 
 # house supply & vacancy
@@ -400,7 +400,7 @@ with st.container():
 
 
 # Observe demand
-st.subheader('Demand factors')
+st.subheader('Demand factors', divider='grey')
 [household_tab, interest_rate_tab, circulation_rate_tab, mainland_capital_tab] = st.tabs(['👨‍👩‍👧‍👦Household', '💳Interest rate', '💸Currency in circulation', '🌏Mainland capital'])
 
 # Household

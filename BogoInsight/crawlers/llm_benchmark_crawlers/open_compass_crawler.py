@@ -65,7 +65,7 @@ class OpenCompassCrawler(BaseCrawler):
     
     def __init__(self):
         super().__init__(
-            topic='LMSYS Arena Elo',
+            topic='OpenCompass benchmark',
             desc="""
                 OpenCompass is a benchmark platform for LLMs.
                 They host their own ranking system, as well as inportant community benchmarks.
@@ -94,7 +94,7 @@ class OpenCompassCrawler(BaseCrawler):
         df_open_compass.set_index('name', inplace=True)
         print(df_open_compass.head())
         
-        # open compass ranking
+        # vision ranking
         response = requests.get(self.VISION_RANKING_URL)
         data = response.json()['Main']
         for item in data:
@@ -135,6 +135,8 @@ class OpenCompassCrawler(BaseCrawler):
         
         self.raw_data = df_open_compass.merge(df_vision, how='outer', left_index=True, right_index=True)
         self.raw_data = self.raw_data.merge(df_comm, how='outer', left_index=True, right_index=True)
+        # self.raw_data = self.raw_data.set_index('name')
+        self.raw_data = self.raw_data.reset_index().drop_duplicates(subset='name').set_index('name')
         
     def process(self):
         self.processed_data = pd.DataFrame(self.raw_data)
