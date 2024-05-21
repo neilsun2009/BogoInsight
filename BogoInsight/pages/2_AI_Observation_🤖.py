@@ -91,7 +91,7 @@ with st.container():
         
         show_model_name = st.toggle('Show model name', key='show-gpu', value=True)
     
-    selected_df.fillna('N/A', inplace=True)
+    selected_df.fillna(-1, inplace=True)
     fig = px.scatter(selected_df,
                      title='🏅NVIDIA GPU model stats',
                      x=x_axis_col,
@@ -207,7 +207,7 @@ with st.container():
         
         show_model_name = st.toggle('Show model name', key='show-llm-model', value=True)
     
-    selected_df.fillna('N/A', inplace=True)
+    selected_df.fillna(-1, inplace=True)
     fig = px.scatter(selected_df,
                      title='🏅Large language model stats',
                      x=x_axis_col,
@@ -553,7 +553,7 @@ with st.container():
             df_bm.dropna(subset=[bm_config['name']], inplace=True)
             df_bm = df_bm.sort_values(by=bm_config['name'], ascending=False)
             df_bm = df_bm.head(10)
-            df_bm.fillna('N/A', inplace=True)
+            df_bm.fillna(-1, inplace=True)
             # bar chart     
             bar_fig = px.bar(
                 df_bm,

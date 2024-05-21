@@ -1,4 +1,3 @@
-conda activate bogo
 nohup \
 streamlit run BogoInsight.py \
 --server.headless true \
