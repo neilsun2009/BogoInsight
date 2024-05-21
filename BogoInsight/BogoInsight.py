@@ -62,7 +62,7 @@ with st.sidebar:
         format_func=lambda d:f"{d['category']} ({d['name']})",
         max_selections=MAX_DS_SELECTION,
     )
-    st.button('Clear all cache', on_click=lambda: st.cache_data.clear())
+    st.button('Reload data', on_click=lambda: st.cache_data.clear())
 
 if len(sel_data_sources) == 0:
     st.warning('Please select at least 1 data source.', icon='🚨')

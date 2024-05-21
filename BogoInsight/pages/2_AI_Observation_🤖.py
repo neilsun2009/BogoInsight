@@ -33,7 +33,7 @@ st.title('🤖AI Observation')
 
 # sidebar
 with st.sidebar:
-    st.button('Clear all cache', on_click=lambda: st.cache_data.clear())
+    st.button('Reload data', on_click=lambda: st.cache_data.clear())
 
 # get data
 ds_nvidia_gpu = get_latest_data_source(CAT_NVIDIA_GPU)
@@ -91,6 +91,7 @@ with st.container():
         
         show_model_name = st.toggle('Show model name', key='show-gpu', value=True)
     
+    selected_df.fillna('N/A', inplace=True)
     fig = px.scatter(selected_df,
                      title='🏅NVIDIA GPU model stats',
                      x=x_axis_col,
@@ -206,6 +207,7 @@ with st.container():
         
         show_model_name = st.toggle('Show model name', key='show-llm-model', value=True)
     
+    selected_df.fillna('N/A', inplace=True)
     fig = px.scatter(selected_df,
                      title='🏅Large language model stats',
                      x=x_axis_col,
@@ -260,7 +262,7 @@ with st.container():
                 'MMMU', 'MathVista',
             ],
             default_dimensions = [
-                'MMLU', 'MATH', 'HumanEval'
+                'MMLU', 'MATH', 'HumanEval', 'OpenCompass CN', 'BFCL'
             ]
         ),
         dict(
@@ -398,11 +400,13 @@ with st.container():
                 dict(
                     name='LMSYS Arena Elo',
                     desc='''
-                    LMSYS Chatbot Arena is a crowdsourced open platform for LLM evals maintained by LMSYS (Large Model System Organization).
-                    They've collected over 1,000,000 human pairwise comparisons to rank LLMs with the Bradley-Terry model and display the model ratings in Elo-scale.
+                    LMSYS Chatbot Arena is a crowdsourced open platform for LLM evals maintained by LMSYS (Large Model System Organization). 
+                    They have collected more than 1,000,000 human pairwise comparisons, and are still doing so, to rank LLMs with the [Bradley-Terry model](https://en.wikipedia.org/wiki/Bradley%E2%80%93Terry_model) and display the model ratings in [Elo-scale](https://en.wikipedia.org/wiki/Elo_rating_system). 
+                    You can participate through [ChatBot Arena](https://arena.lmsys.org/).
                     
-                    [Official website](https://arena.lmsys.org/)
-
+                    [Paper](https://arxiv.org/abs/2403.04132)
+                    
+                    [Blog](https://lmsys.org/blog/2023-05-03-arena/)
                     ''',
                 ),
             ]
@@ -413,7 +417,9 @@ with st.container():
                 dict(
                     name='MMLU',
                     desc='''
-                    Measuring Massive Multitask Language Understanding (MMLU) is a benchmark for evaluating the capabilities of language models. It consists of about 16,000 multiple-choice questions spanning 57 academic subjects including mathematics, philosophy, law and medicine. It is one of the most commonly used benchmarks for comparing the capabilities of large language models.
+                    Measuring Massive Multitask Language Understanding (MMLU) is a benchmark for evaluating the capabilities of language models. 
+                    It consists of about 16,000 multiple-choice questions spanning 57 academic subjects including mathematics, philosophy, law and medicine. 
+                    It is one of the most commonly used benchmarks for comparing the capabilities of large language models.
                     
                     [Paper](https://arxiv.org/abs/2009.03300)
 
@@ -422,7 +428,8 @@ with st.container():
                 dict(
                     name='MATH',
                     desc='''
-                    The MATH dataset or benchmark focuses on evaluating a language model's mathematical reasoning capabilities, requiring it to solve arithmetic, algebraic, and other mathematical problems using natural language understanding.
+                    The MATH dataset or benchmark focuses on evaluating a language model's mathematical reasoning capabilities, requiring it to solve arithmetic, algebraic, and other mathematical problems using natural language understanding. 
+                    It contains 12,500 challenging competition mathematics problems. Each problem in MATH has a full step-by-step solution which can be used to teach models to generate answer derivations and explanations.
                     
                     [Paper](https://arxiv.org/abs/2103.03874)
 
@@ -431,7 +438,8 @@ with st.container():
                 dict(
                     name='HumanEval',
                     desc='''
-                    HumanEval is a benchmark that tests the capability of code generation models to produce human-level code snippets. It consists of real-world programming problems solved by humans and serves as a standard to evaluate the functional correctness of generated code.
+                    HumanEval is a benchmark that tests the capability of code generation models to produce human-level code snippets. 
+                    It consists of 164 original programming problems, assessing language comprehension, algorithms, and simple mathematics, with some comparable to simple software interview questions.
                     
                     [Paper](https://arxiv.org/abs/2107.03374)
 
@@ -440,7 +448,8 @@ with st.container():
                 dict(
                     name='DROP',
                     desc='''
-                    DROP (Disambiguation and Reasoning Over Paraphrases) is a reading comprehension benchmark that requires models to understand passages and answer questions that involve numerical reasoning and the ability to resolve references and paraphrases.
+                    DROP (Disambiguation and Reasoning Over Paraphrases) is a reading comprehension benchmark that requires models to understand passages and answer questions that involve numerical reasoning and the ability to resolve references and paraphrases. 
+                    In this crowdsourced, adversarially-created, 96k question-answering benchmark, a system must resolve multiple references in a question, map them onto a paragraph, and perform discrete operations over them (such as addition, counting, or sorting).
                     
                     [Paper](https://arxiv.org/abs/1903.00161)
 
@@ -449,7 +458,8 @@ with st.container():
                 dict(
                     name='BFCL',
                     desc='''
-                    The Berkeley Function Calling Leaderboard (also called Berkeley Tool Calling Leaderboard) evaluates the LLM's ability to call functions (aka tools) accurately. This leaderboard consists of real-world data and will be updated periodically.
+                    The Berkeley Function Calling Leaderboard (also called Berkeley Tool Calling Leaderboard) evaluates the LLM's ability to call functions (aka tools) accurately. 
+                    The dataset includes 40 sub-domains of functions within its generic evaluations. This allows us to understand the model performance not just in data-abundant domains like computing, and cloud, but also in niche domains like sports, and law.
                     
                     [Paper](https://gorilla.cs.berkeley.edu/blogs/8_berkeley_function_calling_leaderboard.html)
                     
@@ -461,37 +471,28 @@ with st.container():
         ),
         dict(
             name='🧭OpenCompass',
+            desc='''
+                Open Compass CompassRank is dedicated to exploring the most advanced language and visual models, offering a comprehensive, objective, and neutral evaluation reference for the industry and research community.
+                Using multiple closed-source datasets for evaluation, it provides multi-dimensional evaluation scores.
+                
+                [Official website](https://rank.opencompass.org.cn/home)
+            ''',
             benchmarks=[
                 dict(
                     name='OpenCompass avg',
                     desc='''
-                    Open Compass CompassRank is dedicated to exploring the most advanced language and visual models, offering a comprehensive, objective, and neutral evaluation reference for the industry and research community.
-                    It is updated on a monthly basis.
-                    
-                    [Official website](https://rank.opencompass.org.cn/home)
-                    
-                    This is the overall average rating by OpenCompass.
+                    This is the overall average rating by OpenCompass, which is the average score of the model across all evaluation datasets in OpenCompass.
                     ''',
                 ),
                 dict(
                     name='OpenCompass CN',
                     desc='''
-                    Open Compass CompassRank is dedicated to exploring the most advanced language and visual models, offering a comprehensive, objective, and neutral evaluation reference for the industry and research community.
-                    It is updated on a monthly basis.
-                    
-                    [Official website](https://rank.opencompass.org.cn/home)
-                    
                     This is the overall Chinese language rating by OpenCompass.
                     ''',
                 ),
                 dict(
                     name='OpenCompass EN',
                     desc='''
-                    Open Compass CompassRank is dedicated to exploring the most advanced language and visual models, offering a comprehensive, objective, and neutral evaluation reference for the industry and research community.
-                    It is updated on a monthly basis.
-                    
-                    [Official website](https://rank.opencompass.org.cn/home)
-                    
                     This is the overall English language rating by OpenCompass.
                     ''',
                 ),
@@ -504,6 +505,8 @@ with st.container():
                     name='MMMU',
                     desc='''
                     MMMU (Massive Multi-discipline Multimodal Understanding) is a new benchmark designed to evaluate multimodal models on massive multi-discipline tasks demanding college-level subject knowledge and deliberate reasoning.
+                    MMMU includes 11.5K meticulously collected multimodal questions from college exams, quizzes, and textbooks, covering six core disciplines: Art & Design, Business, Science, Health & Medicine, Humanities & Social Science, and Tech & Engineering, spans 30 subjects and 183 subfields.
+                    It focuses on advanced perception and reasoning with domain-specific knowledge, challenging models to perform tasks akin to those faced by experts. 
                     
                     [Paper](https://arxiv.org/abs/2311.16502)
 
@@ -512,7 +515,9 @@ with st.container():
                 dict(
                     name='MathVista',
                     desc='''
-                    MathVista is a benchmark designed to combine challenges from diverse mathematical and visual tasks. It consists of 6,141 examples, derived from 28 existing multimodal datasets involving mathematics and 3 newly created datasets (i.e., IQTest, FunctionQA, and PaperQA). Completing these tasks requires fine-grained, deep visual understanding and compositional reasoning, which all state-of-the-art foundation models find challenging.
+                    MathVista is a benchmark designed to combine challenges from diverse mathematical and visual tasks. 
+                    It consists of 6,141 examples, derived from 28 existing multimodal datasets involving mathematics and 3 newly created datasets (i.e., IQTest, FunctionQA, and PaperQA). 
+                    Completing these tasks requires fine-grained, deep visual understanding and compositional reasoning, which all state-of-the-art foundation models find challenging.
                     
                     [Paper](https://arxiv.org/abs/2310.02255)
 
@@ -525,6 +530,8 @@ with st.container():
     for idx, tab in enumerate(tabs):
         with tab:
             tab_cofig = benchmark_configs[idx]
+            if 'desc' in tab_cofig:
+                st.markdown(tab_cofig['desc'])
             bm_config = st.selectbox('Select an indivisual benchmark', 
                                      tab_cofig['benchmarks'], 
                                      format_func=lambda x: x['name'],
@@ -546,12 +553,13 @@ with st.container():
             df_bm.dropna(subset=[bm_config['name']], inplace=True)
             df_bm = df_bm.sort_values(by=bm_config['name'], ascending=False)
             df_bm = df_bm.head(10)
+            df_bm.fillna('N/A', inplace=True)
             # bar chart     
             bar_fig = px.bar(
                 df_bm,
                 x=df_bm.index,
                 y=[bm_config['name']],
-                title=f'Top 10 models according to {bm_config["name"]}',
+                title=title,
                 color=df_bm.index,
                 text_auto=True,
                 hover_name=df_bm.index,

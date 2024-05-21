@@ -17,6 +17,7 @@ class OpenCompassCrawler(BaseCrawler):
     
     MODEL_NAME_MAP = {
         # open compass
+        'GPT-4o-20240513': 'GPT-4o',
         'GPT-4-Turbo-20240409': 'GPT-4 Turbo 2024-04-09',
         'GPT-4-Turbo-1106': 'GPT-4 Turbo',
         'Claude3-Opus': 'Claude 3 Opus',
@@ -49,6 +50,7 @@ class OpenCompassCrawler(BaseCrawler):
         'Claude-3V Opus': 'Claude 3 Opus',
         'Claude-3V Haiku': 'Claude 3 Haiku',
         'PaliGemma-3B-mix-448': 'PaliGemma',
+        'Qwen-VL-Chat': 'Qwen VL',
         # community
         'GPT-4': 'GPT-4',
         'Qwen-72B': 'Qwen 72B',

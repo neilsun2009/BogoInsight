@@ -112,7 +112,7 @@ st.title('🏠Analysis on HK House Price')
 
 # sidebar
 with st.sidebar:
-    st.button('Clear all cache', on_click=lambda: st.cache_data.clear())
+    st.button('Reload data', on_click=lambda: st.cache_data.clear())
 
 # get data
 ds_house_price = get_latest_data_source(CAT_HOUSE_PRICE)
