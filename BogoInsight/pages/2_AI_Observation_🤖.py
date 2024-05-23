@@ -200,7 +200,7 @@ with st.container():
         start_period, end_period = st.select_slider(
             'Select period range',
             options = period_range,
-            value = (pd.to_datetime('2022-11-01'), period_range[-1]),
+            value = (pd.to_datetime('2023-3-01'), period_range[-1]),
             format_func=lambda x: x.strftime('%Y-%m')
         )
         selected_df = selected_df[(selected_df['period'] >= start_period) & (selected_df['period'] <= end_period)]
@@ -224,13 +224,15 @@ with st.container():
                      color_discrete_map={
                         'OpenAI': 'rgb(153, 153, 153)',
                         'Anthropic': '#9d755d',
-                        'Meta': '#3366cc',
+                        'Meta': 'rgb(131, 201, 255)',
                         'Google': '#ab63fa',
                         'Aliyun': '#ffa15a',
-                        'Baidu': '#00cc96',
+                        'Baidu': 'rgb(125, 139, 161)',
                         'Huawei': '#d62728',
                         'Mistral AI': '#eeca3b',
                         'x.AI': 'rgb(179, 179, 179)',
+                        '01.AI': 'rgb(41, 176, 157)',
+                        'Zhipu AI': '#3366cc',
                         'Moonshot': '#ff9da6',
                      }
                     )

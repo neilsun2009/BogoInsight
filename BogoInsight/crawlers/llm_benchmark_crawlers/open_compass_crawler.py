@@ -40,6 +40,7 @@ class OpenCompassCrawler(BaseCrawler):
         'Mistral-7B-Instruct-v0.2': 'Mistral 7B',
         'LLaMA-2-13B-Chat': 'Llama 2 13B',
         'LLaMA-2-7B-Chat': 'Llama 2 7B',
+        'GLM-4': 'GLM-4',
         # vision
         'GPT-4o, 20240513': 'GPT-4o',
         'GPT-4v, 20240409': 'GPT-4 Turbo 2024-04-09',
@@ -51,6 +52,8 @@ class OpenCompassCrawler(BaseCrawler):
         'Claude-3V Haiku': 'Claude 3 Haiku',
         'PaliGemma-3B-mix-448': 'PaliGemma',
         'Qwen-VL-Chat': 'Qwen VL',
+        'GeminiProVision': 'Gemini 1.0 Pro',
+        'GLM-4v': 'GLM-4V',
         # community
         'GPT-4': 'GPT-4',
         'Qwen-72B': 'Qwen 72B',

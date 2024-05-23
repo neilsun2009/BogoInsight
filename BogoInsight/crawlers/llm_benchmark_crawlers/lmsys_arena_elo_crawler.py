@@ -52,6 +52,8 @@ class LMSYSArenaEloCrawler(BaseCrawler):
         'Llama-2-7b-chat': 'Llama 2 7B',
         'LLaMA-13B': 'LLaMA',
         'Qwen1.5-32B-Chat': 'Qwen1.5 32B',
+        'Yi-Large-preview': 'Yi Large',
+        'GLM-4-0116': 'GLM-4',
     }
     
     def __init__(self):
