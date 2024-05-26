@@ -55,8 +55,8 @@ with st.container():
     st.write('Set parameters here:')
     with st.container(height=400):
         selectable_columns = [
-            'processing power fp32 (TFLOPS)',
             'processing power fp64 (TFLOPS)',
+            'processing power fp32 (TFLOPS)',
             'processing power fp16 (TFLOPS)',
             'memory (GB)',
             'fab (nm)',
