@@ -67,7 +67,7 @@ with st.container():
             'boost clock (MHz)',
         ]
         x_axis_col = st.selectbox('X-axis', ['period'] + selectable_columns, index=0)
-        y_axis_col = st.selectbox('Y-axis', selectable_columns, index=0)
+        y_axis_col = st.selectbox('Y-axis', selectable_columns, index=1)
         size_col = st.selectbox('Point size', selectable_columns, index=3)
         
         # filters
