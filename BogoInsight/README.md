@@ -13,8 +13,9 @@ This project is bulit upon Streamlit.
 - `pages/` Streamlit pages
 - `services/` db services (unused)
 - `utils/` utility functions
+- `app.js` Node.js proxy for Streamlit app, a workaround for publishing on cPanel
 - `BogoInsight.py` entrypoint for Streamlit app
-- `main.js` Node.js proxy for Streamlit app, a workaround for publishing on cPanel
+- `loader.cjs` cPanel Node.js entrypoint
 - `run.sh` entrypoint for production
 
 ## Usage
