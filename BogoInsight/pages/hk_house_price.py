@@ -13,6 +13,7 @@ from BogoInsight.utils.data_utils import (
 from BogoInsight.utils.plot_utils import (
     update_line_chart, gen_heatmap
 )
+from BogoInsight.utils.router import render_toc
 
 
 # data category consts
@@ -104,7 +105,7 @@ def draw_tendency_rects(fig, with_annotation=True):
                          annotation_position=("top left"),)
         
 st.set_page_config(
-    page_title='Hong Kong House Price Analysis - BogoInsight', 
+    page_title='Hong Kong House Price Analysis | BogoInsight', 
     page_icon='🏠'
 )
 
@@ -112,6 +113,9 @@ st.title('🏠Analysis on HK House Price')
 
 # sidebar
 with st.sidebar:
+    render_toc()
+    st.divider()
+    
     st.button('Reload data', on_click=lambda: st.cache_data.clear())
 
 # get data
