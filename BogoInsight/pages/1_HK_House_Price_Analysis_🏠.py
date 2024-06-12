@@ -484,7 +484,7 @@ with interest_rate_tab:
         **Note:**
         + H plan & P plan mortage rate are calculated using current standard, i.e.  
         P plan mortgage rate = best lending rate - 1.75%  
-        H plan mortgage rate = min(P plan mortgage rate - 1.75%, HIBOR (1 month) + 1.3%)
+        H plan mortgage rate = min(P plan mortgage rate, HIBOR (1 month) + 1.3%)
         + Obviously, H plan is generally preferred by borrowers.
         
         **Observation:**
