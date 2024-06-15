@@ -28,6 +28,12 @@ PAGES = [
         "access": access_level['visitor'],
     },
     {
+        "label": "Football Knockout Analysis",
+        "icon": "⚽",
+        "link": "pages/football_knockout.py",
+        "access": access_level['visitor'],
+    },
+    {
         "label": "Playground",
         "icon": "🎈",
         "link": "pages/playground.py",
