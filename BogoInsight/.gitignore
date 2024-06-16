@@ -3,4 +3,5 @@ mysql_data/
 file.log
 data/
 node_modules/
+.streamlit/secrets.toml
 package-lock.json

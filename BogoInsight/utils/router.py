@@ -34,16 +34,19 @@ PAGES = [
         "access": access_level['visitor'],
     },
     {
+        "label": "divider"
+    },
+    {
         "label": "Playground",
         "icon": "🎈",
         "link": "pages/playground.py",
         "access": access_level['visitor'],
     },
     {
-        "label": "Admin",
-        "icon": "🔒",
-        "link": "pages/admin.py",
-        "access": access_level['admin'],
+        "label": "User Panel",
+        "icon": "🧐",
+        "link": "pages/user_panel.py",
+        "access": access_level['visitor'],
     },
 ]
 
@@ -53,6 +56,9 @@ def render_toc_with_expander():
             
 def render_toc():
     for page in PAGES:
+        if page['label'] == "divider":
+            st.divider()
+            continue
         if st.session_state.get('access_level', 0) < page['access']:
             continue
         st.page_link(

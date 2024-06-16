@@ -9,6 +9,7 @@ import numpy as np
 from datetime import datetime
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
+from BogoInsight.configs.access import access_level
 from BogoInsight.utils.data_utils import (
     get_latest_data_source, load_df,
 )
@@ -17,6 +18,7 @@ from BogoInsight.utils.plot_utils import (
 )
 from BogoInsight.utils.router import render_toc
 from BogoInsight.utils.football_utils import get_nation_flag_html
+from BogoInsight.utils.router import render_toc
 
 CAT_FOOTBALL_KNOCKOUT = 'football_knockout_matches'
 
@@ -39,6 +41,8 @@ st.set_page_config(
 )
 
 st.title('⚽Football Knockout Stage Analysis')
+
+cur_access_level = st.session_state.get('access_level', access_level['visitor'])
 
 # sidebar
 with st.sidebar:
@@ -240,50 +244,62 @@ with st.container():
     
     # st.dataframe(df_agg)
     
-    with st.expander('🎲Odds playground', expanded=False):
-        st.warning('⚠️ This section is only for mathematical purposes and does not endorse or encourage gambling in any way.')
-        home_input_col, draw_input_col, away_input_col = st.columns(3)
-        with home_input_col:
-            home_win_odds = st.number_input('Home win odds', value=2.36, min_value=1.0, step=0.1)
-            home_is_seed = st.toggle('Home team is seeded', value=True)
-        with draw_input_col:
-            draw_odds = st.number_input('Draw odds', value=3.05, min_value=1.0, step=0.1)
-        with away_input_col:
-            away_win_odds = st.number_input('Away win odds', value=2.68, min_value=1.0, step=0.1)
-            away_is_seed = st.toggle('Away team is seeded', value=True)
-        # calculate probabilities for each scenario
-        df_agg_all = df_agg[df_agg['game'] == 'All']
-        underdog_win_prob = df_agg_all[(df_agg_all['match_category'] == 'Underdog vs Seed') & (df_agg_all['result_category'] == 'Underdog wins')]['percentage'].values[0] / 100
-        seed_win_prob = df_agg_all[(df_agg_all['match_category'] == 'Underdog vs Seed') & (df_agg_all['result_category'] == 'Seed wins')]['percentage'].values[0] / 100
-        underdog_seed_draw_prob = df_agg_all[(df_agg_all['match_category'] == 'Underdog vs Seed') & (df_agg_all['result_category'] == 'Underdog/seed draw')]['percentage'].values[0] / 100
-        balanced_no_draw_prob = df_agg_all[(df_agg_all['match_category'] == 'Balanced') & (df_agg_all['result_category'] == 'Balanced no draw')]['percentage'].values[0] / 100
-        balanced_draw_prob = df_agg_all[(df_agg_all['match_category'] == 'Balanced') & (df_agg_all['result_category'] == 'Balanced draw')]['percentage'].values[0] / 100
-        # calculate each teams' win probability
-        if (home_is_seed and away_is_seed) or (not home_is_seed and not away_is_seed):
-            home_win_prob = balanced_no_draw_prob / 2
-            draw_prob = balanced_draw_prob
-            away_win_prob = balanced_no_draw_prob / 2
-        elif home_is_seed and not away_is_seed:
-            home_win_prob = seed_win_prob
-            draw_prob = underdog_seed_draw_prob
-            away_win_prob = underdog_win_prob
+    with st.expander('🎲Odds playground', expanded=True):
+        if cur_access_level == access_level['visitor']:
+            st.warning('🔒 This section is for verified user only.')
+            go_to_user_panel = st.button('Go to user panel')
+            if go_to_user_panel:
+                st.switch_page('pages/user_panel.py')
         else:
-            home_win_prob = underdog_win_prob
-            draw_prob = underdog_seed_draw_prob
-            away_win_prob = seed_win_prob
-        # print winning probabilities and expected profits
-        home_result_col, draw_result_col, away_result_col = st.columns(3)
-        with home_result_col:
-            st.metric('Home win probability', value=f'{home_win_prob * 100:.2f}%')
-            st.metric('Expected profit', value=f'{home_win_prob * home_win_odds - 1:.2f}')
-        with draw_result_col:
-            st.metric('Draw probability', value=f'{draw_prob * 100:.2f}%')
-            st.metric('Expected profit', value=f'{draw_prob * draw_odds - 1:.2f}')
-        with away_result_col:
-            st.metric('Away win probability', value=f'{away_win_prob * 100:.2f}%')
-            st.metric('Expected profit', value=f'{away_win_prob * away_win_odds - 1:.2f}')
-    
-        st.write('🔗 More on the mathematical calculation: [(Chinese) "Alternative investment" on World Cup](https://mp.weixin.qq.com/s?__biz=MzU0NTExNjE1NA==&mid=2247483871&idx=1&sn=e2cd88457dc6e8b93b21484ac6978712&chksm=fb709b4acc07125cf59fcce09d5c4304ce27bbbd8aab0ff2d2a3e258a9cbf53dd7bdf9b64c78&token=1101937543&lang=zh_CN#rd)')
+            st.warning('''
+                    ⚠️ This section is for mathematical purposes only and does not endorse or encourage gambling in any way. 
+                    
+                    The calculated results should not be taken as gambling recommendations. 
+                    
+                    If you were to gamble, please do so responsibly.
+                    ''')
+            home_input_col, draw_input_col, away_input_col = st.columns(3)
+            with home_input_col:
+                home_win_odds = st.number_input('Home win odds', value=2.36, min_value=1.0, step=0.1)
+                home_is_seed = st.toggle('Home team is seeded', value=True)
+            with draw_input_col:
+                draw_odds = st.number_input('Draw odds', value=3.05, min_value=1.0, step=0.1)
+            with away_input_col:
+                away_win_odds = st.number_input('Away win odds', value=2.68, min_value=1.0, step=0.1)
+                away_is_seed = st.toggle('Away team is seeded', value=True)
+            # calculate probabilities for each scenario
+            df_agg_all = df_agg[df_agg['game'] == 'All']
+            underdog_win_prob = df_agg_all[(df_agg_all['match_category'] == 'Underdog vs Seed') & (df_agg_all['result_category'] == 'Underdog wins')]['percentage'].values[0] / 100
+            seed_win_prob = df_agg_all[(df_agg_all['match_category'] == 'Underdog vs Seed') & (df_agg_all['result_category'] == 'Seed wins')]['percentage'].values[0] / 100
+            underdog_seed_draw_prob = df_agg_all[(df_agg_all['match_category'] == 'Underdog vs Seed') & (df_agg_all['result_category'] == 'Underdog/seed draw')]['percentage'].values[0] / 100
+            balanced_no_draw_prob = df_agg_all[(df_agg_all['match_category'] == 'Balanced') & (df_agg_all['result_category'] == 'Balanced no draw')]['percentage'].values[0] / 100
+            balanced_draw_prob = df_agg_all[(df_agg_all['match_category'] == 'Balanced') & (df_agg_all['result_category'] == 'Balanced draw')]['percentage'].values[0] / 100
+            # calculate each teams' win probability
+            if (home_is_seed and away_is_seed) or (not home_is_seed and not away_is_seed):
+                home_win_prob = balanced_no_draw_prob / 2
+                draw_prob = balanced_draw_prob
+                away_win_prob = balanced_no_draw_prob / 2
+            elif home_is_seed and not away_is_seed:
+                home_win_prob = seed_win_prob
+                draw_prob = underdog_seed_draw_prob
+                away_win_prob = underdog_win_prob
+            else:
+                home_win_prob = underdog_win_prob
+                draw_prob = underdog_seed_draw_prob
+                away_win_prob = seed_win_prob
+            # print winning probabilities and expected profits
+            home_result_col, draw_result_col, away_result_col = st.columns(3)
+            with home_result_col:
+                st.metric('Home win probability', value=f'{home_win_prob * 100:.2f}%')
+                st.metric('Expected profit', value=f'{home_win_prob * home_win_odds - 1:.2f}')
+            with draw_result_col:
+                st.metric('Draw probability', value=f'{draw_prob * 100:.2f}%')
+                st.metric('Expected profit', value=f'{draw_prob * draw_odds - 1:.2f}')
+            with away_result_col:
+                st.metric('Away win probability', value=f'{away_win_prob * 100:.2f}%')
+                st.metric('Expected profit', value=f'{away_win_prob * away_win_odds - 1:.2f}')
+        
+            st.write('🔗 More on the mathematical calculation: [(Chinese) "Alternative investment" on World Cup](https://mp.weixin.qq.com/s?__biz=MzU0NTExNjE1NA==&mid=2247483871&idx=1&sn=e2cd88457dc6e8b93b21484ac6978712&chksm=fb709b4acc07125cf59fcce09d5c4304ce27bbbd8aab0ff2d2a3e258a9cbf53dd7bdf9b64c78&token=1101937543&lang=zh_CN#rd)')
     
     
 with st.container():
