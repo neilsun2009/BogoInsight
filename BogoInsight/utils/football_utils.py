@@ -71,7 +71,7 @@ def get_nation_flag_html(nation):
     else:
         url = f'https://flagicons.lipis.dev/flags/1x1/{NATION_CODE_MAP[nation]}.svg'
     return f'''
-    <div style="width: 50px; height: 50px; border-radius: 100%; overflow: hidden; display: inline-block; margin: 2px; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .18);">
+    <div style="width: 50px; height: 50px; border-radius: 100%; overflow: hidden; display: inline-block; margin: 2px; box-shadow: 0 0 0 2px rgba(0, 0, 0, .08);">
         <img src="{url}" alt="{nation}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;" />
     </div>
     '''

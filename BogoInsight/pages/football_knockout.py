@@ -30,6 +30,7 @@ DEFAULT_SEEDED_TEAMS = {
         "Portugal", "England",
     ],
     "Russia 2018": ["Belgium"],
+    "Euro 2020": ["Belgium"],
 }
 
 st.set_page_config(
@@ -101,11 +102,11 @@ with st.container():
             teams = set(df_cur_game['home_team'].unique()) | set(df_cur_game['away_team'].unique())
             teams = list(teams)
             teams.sort()
-            default_seeds = DEFAULT_SEEDED_TEAMS.get(tournament, [])
-            default_seeds += DEFAULT_SEEDED_TEAMS.get(game_name, [])
+            default_seeds = DEFAULT_SEEDED_TEAMS.get(tournament, []).copy()
+            default_seeds += DEFAULT_SEEDED_TEAMS.get(game_name, []).copy()
             default_seeds = list(set(teams) & set(default_seeds))
             default_seeds.sort()
-            seeded_teams[game_name] = st.multiselect(f'**{game_name}**', teams, key=f'fav_{game_name}', default=default_seeds)
+            seeded_teams[game_name] = st.multiselect(f'**{game_name}**', teams, key=f'seed_{game_name}', default=default_seeds)
     
     # iterate and categorize matches
     # at the same time, construct another df to aggregate the stats
@@ -169,16 +170,17 @@ with st.container():
             match_cat = 'Balanced'
         with tab:
             df_cur_cat = df_agg[df_agg['match_category'] == match_cat]
+            show_counts = st.toggle('Show match counts', value=False, key=f'show_counts_{match_cat}')
             result_cat_fig = px.bar(
-                df_cur_cat, 
+                df_cur_cat[df_cur_cat['game'] != 'All'] if show_counts else df_cur_cat, 
                 title=f'📊{match_cat} result distribution',
-                x='percentage', 
+                x='count' if show_counts else 'percentage', 
                 y='game', 
                 color='result_category', 
                 barmode='stack',
                 orientation='h', 
-                text='percentage',
-                text_auto='.2f',
+                text='count' if show_counts else 'percentage',
+                text_auto=True if show_counts else '.2f',
                 color_discrete_map={
                     'Underdog wins': 'rgb(255, 43, 43)',
                     'Underdog/seed draw': 'rgb(255, 170, 170)',
@@ -210,7 +212,7 @@ with st.container():
     
     match_cat_fig = px.histogram(
         df_agg[df_agg['game'] != 'All'], 
-        title='📊Match category distribution',
+        title='📊Overall match category distribution',
         x='game', 
         y='count', 
         color='match_category', 
@@ -223,10 +225,66 @@ with st.container():
         },
     )
     match_cat_fig.update_yaxes(tickvals=[0, 4, 8, 12, 16] if tournament == 'FIFA World Cup' else [0, 5, 10, 15])
-    match_cat_fig.update_layout(legend_title_text='Match category')
+    match_cat_fig.update_layout(
+        # legend_title_text='Match category',
+        legend_title_text='',
+        legend=dict(
+            orientation='h',
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        ),
+    )
     st.plotly_chart(match_cat_fig, theme="streamlit")
     
     # st.dataframe(df_agg)
+    
+    with st.expander('🎲Odds playground', expanded=False):
+        st.warning('⚠️ This section is only for mathematical purposes and does not endorse or encourage gambling in any way.')
+        home_input_col, draw_input_col, away_input_col = st.columns(3)
+        with home_input_col:
+            home_win_odds = st.number_input('Home win odds', value=2.36, min_value=1.0, step=0.1)
+            home_is_seed = st.toggle('Home team is seeded', value=True)
+        with draw_input_col:
+            draw_odds = st.number_input('Draw odds', value=3.05, min_value=1.0, step=0.1)
+        with away_input_col:
+            away_win_odds = st.number_input('Away win odds', value=2.68, min_value=1.0, step=0.1)
+            away_is_seed = st.toggle('Away team is seeded', value=True)
+        # calculate probabilities for each scenario
+        df_agg_all = df_agg[df_agg['game'] == 'All']
+        underdog_win_prob = df_agg_all[(df_agg_all['match_category'] == 'Underdog vs Seed') & (df_agg_all['result_category'] == 'Underdog wins')]['percentage'].values[0] / 100
+        seed_win_prob = df_agg_all[(df_agg_all['match_category'] == 'Underdog vs Seed') & (df_agg_all['result_category'] == 'Seed wins')]['percentage'].values[0] / 100
+        underdog_seed_draw_prob = df_agg_all[(df_agg_all['match_category'] == 'Underdog vs Seed') & (df_agg_all['result_category'] == 'Underdog/seed draw')]['percentage'].values[0] / 100
+        balanced_no_draw_prob = df_agg_all[(df_agg_all['match_category'] == 'Balanced') & (df_agg_all['result_category'] == 'Balanced no draw')]['percentage'].values[0] / 100
+        balanced_draw_prob = df_agg_all[(df_agg_all['match_category'] == 'Balanced') & (df_agg_all['result_category'] == 'Balanced draw')]['percentage'].values[0] / 100
+        # calculate each teams' win probability
+        if (home_is_seed and away_is_seed) or (not home_is_seed and not away_is_seed):
+            home_win_prob = balanced_no_draw_prob / 2
+            draw_prob = balanced_draw_prob
+            away_win_prob = balanced_no_draw_prob / 2
+        elif home_is_seed and not away_is_seed:
+            home_win_prob = seed_win_prob
+            draw_prob = underdog_seed_draw_prob
+            away_win_prob = underdog_win_prob
+        else:
+            home_win_prob = underdog_win_prob
+            draw_prob = underdog_seed_draw_prob
+            away_win_prob = seed_win_prob
+        # print winning probabilities and expected profits
+        home_result_col, draw_result_col, away_result_col = st.columns(3)
+        with home_result_col:
+            st.metric('Home win probability', value=f'{home_win_prob * 100:.2f}%')
+            st.metric('Expected profit', value=f'{home_win_prob * home_win_odds - 1:.2f}')
+        with draw_result_col:
+            st.metric('Draw probability', value=f'{draw_prob * 100:.2f}%')
+            st.metric('Expected profit', value=f'{draw_prob * draw_odds - 1:.2f}')
+        with away_result_col:
+            st.metric('Away win probability', value=f'{away_win_prob * 100:.2f}%')
+            st.metric('Expected profit', value=f'{away_win_prob * away_win_odds - 1:.2f}')
+    
+        st.write('🔗 More on the mathematical calculation: [(Chinese) "Alternative investment" on World Cup](https://mp.weixin.qq.com/s?__biz=MzU0NTExNjE1NA==&mid=2247483871&idx=1&sn=e2cd88457dc6e8b93b21484ac6978712&chksm=fb709b4acc07125cf59fcce09d5c4304ce27bbbd8aab0ff2d2a3e258a9cbf53dd7bdf9b64c78&token=1101937543&lang=zh_CN#rd)')
+    
     
 with st.container():
     st.header('🤺Match details')
@@ -240,12 +298,12 @@ with st.container():
             with st.container(border=True):
                 st.markdown(f"<div style='text-align: center; '>{row.date}</div>", unsafe_allow_html=True)
                 st.markdown(f"""
-                            <div style='display: flex; align-items: center; justify-content: center; margin-bottom: 10px'>
+                            <div style='display: flex; align-items: start; justify-content: center; margin-bottom: 10px'>
                                 <div style="display: inline-block; text-align: center; width: 100px; 
                                     opacity: {'1' if row.home_score > row.away_score or row.has_extra_time else '0.5'}
                                 ">
                                     {get_nation_flag_html(row.home_team)}<br/>
-                                    {row.home_team}<br/>
+                                    <span style="display: inline-block;line-height: 1em">{row.home_team}</span><br/>
                                     <span style="display: inline-block;width:75px;border-radius:5px;
                                         font-size: 0.8em; text-align: center; color: white;
                                         background-color: {'#32a852' if row.home_team in seeded_teams[game_name] else '#FF2B2B'};
@@ -253,8 +311,8 @@ with st.container():
                                         {'Seed' if row.home_team in seeded_teams[game_name] else 'Underdog'}
                                     </span>
                                 </div>
-                                <span style='display: inline-block; text-align: center; width: 100px'>
-                                    <span style='font-size: 1.5em;font-weight: bold;'>
+                                <span style='display: inline-block; text-align: center; width: 100px; align-self: center'>
+                                    <span style='font-size: 2em;font-weight: bold;'>
                                         {row.home_score} - {row.away_score}
                                     </span><br/>
                                     <span>{'a.e.t.' if row.has_extra_time else '<br/>'}</span>
@@ -264,7 +322,7 @@ with st.container():
                                     opacity: {'1' if row.away_score > row.home_score or row.has_extra_time else '0.5'}
                                 ">
                                     {get_nation_flag_html(row.away_team)}<br/>
-                                    {row.away_team}<br/>
+                                    <span style="display: inline-block;line-height: 1em">{row.away_team}</span><br/>
                                     <span style="display: inline-block;width:75px;border-radius:5px;
                                         font-size: 0.8em; text-align: center; color: white;
                                         background-color: {'#32a852' if row.away_team in seeded_teams[game_name] else '#FF2B2B'};
@@ -275,5 +333,5 @@ with st.container():
                             </div>
                             """, unsafe_allow_html=True)
                 st.caption(f"<p style='text-align: center;'>🔗<a href='{row.report_link}'>Match details</a></p>", unsafe_allow_html=True)
-    
-st.dataframe(df_football_knockout)
+  
+       
