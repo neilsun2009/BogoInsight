@@ -18,7 +18,7 @@ from BogoInsight.utils.plot_utils import (
 )
 from BogoInsight.utils.router import render_toc
 from BogoInsight.utils.football_utils import get_nation_flag_html
-from BogoInsight.utils.router import render_toc
+from BogoInsight.utils.streamlit_utils import render_unlock_form
 
 CAT_FOOTBALL_KNOCKOUT = 'football_knockout_matches'
 
@@ -247,9 +247,10 @@ with st.container():
     with st.expander('🎲Odds playground', expanded=True):
         if cur_access_level == access_level['visitor']:
             st.warning('🔒 This section is for verified user only.')
-            go_to_user_panel = st.button('Go to user panel')
-            if go_to_user_panel:
-                st.switch_page('pages/user_panel.py')
+            render_unlock_form()
+            # go_to_user_panel = st.button('Go to user panel')
+            # if go_to_user_panel:
+            #     st.switch_page('pages/user_panel.py')
         else:
             st.warning('''
                     ⚠️ This section is for mathematical purposes only and does not endorse or encourage gambling in any way. 
@@ -299,7 +300,7 @@ with st.container():
                 st.metric('Away win probability', value=f'{away_win_prob * 100:.2f}%')
                 st.metric('Expected profit', value=f'{away_win_prob * away_win_odds - 1:.2f}')
         
-            st.write('🔗 More on the mathematical calculation: [(Chinese) "Alternative investment" on World Cup](https://mp.weixin.qq.com/s?__biz=MzU0NTExNjE1NA==&mid=2247483871&idx=1&sn=e2cd88457dc6e8b93b21484ac6978712&chksm=fb709b4acc07125cf59fcce09d5c4304ce27bbbd8aab0ff2d2a3e258a9cbf53dd7bdf9b64c78&token=1101937543&lang=zh_CN#rd)')
+            st.write('🔗 More on the methodology: ["Alternative investment" on World Cup (in Chinese)](https://mp.weixin.qq.com/s?__biz=MzU0NTExNjE1NA==&mid=2247483871&idx=1&sn=e2cd88457dc6e8b93b21484ac6978712&chksm=fb709b4acc07125cf59fcce09d5c4304ce27bbbd8aab0ff2d2a3e258a9cbf53dd7bdf9b64c78&token=1101937543&lang=zh_CN#rd)')
     
     
 with st.container():
