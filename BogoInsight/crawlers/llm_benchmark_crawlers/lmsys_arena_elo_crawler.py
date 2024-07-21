@@ -18,7 +18,10 @@ class LMSYSArenaEloCrawler(BaseCrawler):
     MODEL_NAME_MAP = {
         'GPT-4o-2024-05-13': 'GPT-4o',
         'GPT-4-Turbo-2024-04-09': 'GPT-4 Turbo 2024-04-09',
-        'Gemini 1.5 Pro API-0409-Preview': 'Gemini 1.5 Pro',
+        # 'Gemini 1.5 Pro API-0409-Preview': 'Gemini 1.5 Pro',
+        'Gemini-1.5-Pro-API-0409-Preview': 'Gemini 1.5 Pro',
+        'Gemini-1.5-Pro-API-0514': 'Gemini 1.5 Pro 2024-05',
+        'Gemini-1.5-Flash-API-0514': 'Gemini 1.5 Flash',
         'GPT-4-1106-preview': 'GPT-4 Turbo',
         'Claude 3 Opus': 'Claude 3 Opus',
         'GPT-4-0125-preview': 'GPT-4 Turbo 0125',
@@ -52,8 +55,15 @@ class LMSYSArenaEloCrawler(BaseCrawler):
         'Llama-2-7b-chat': 'Llama 2 7B',
         'LLaMA-13B': 'LLaMA',
         'Qwen1.5-32B-Chat': 'Qwen1.5 32B',
-        'Yi-Large-preview': 'Yi Large',
-        'GLM-4-0116': 'GLM-4',
+        'Yi-Large': 'Yi Large',
+        # 'GLM-4-0116': 'GLM-4',
+        'GLM-4-0520': 'GLM-4',
+        'Claude 3.5 Sonnet': 'Claude 3.5 Sonnet',
+        'Gemma-2-27B-it': 'Gemma 2',
+        'Phi-3-Medium-4k-Instruct': 'Phi-3 Medium',
+        'Phi-3-Small-8k-Instruct': 'Phi-3 Small',
+        'Phi-3-Mini-4k-Instruct': 'Phi-3 Mini',
+        'Qwen2-72B-Instruct': 'Qwen2 72B',
     }
     
     def __init__(self):
@@ -82,7 +92,7 @@ class LMSYSArenaEloCrawler(BaseCrawler):
         df = pd.DataFrame(result['data'], columns=result['headers'])
         
         # Keep only the 'Model' and 'Arena Elo' columns, and rename them
-        df = df[['Model', 'Arena Elo']].rename(columns={'Model': 'name', 'Arena Elo': 'LMSYS Arena Elo'})
+        df = df[['🤖 Model', '⭐ Arena Score']].rename(columns={'🤖 Model': 'name', '⭐ Arena Score': 'LMSYS Arena Elo'})
 
         # Use regular expression to extract 'real_name' from the 'name' column
         df['name'] = df['name'].apply(lambda x: BeautifulSoup(x, 'html.parser').get_text())

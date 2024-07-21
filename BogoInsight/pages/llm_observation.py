@@ -240,7 +240,7 @@ with st.container():
                 df_arena = df_arena[dimensions]
                 # df_arena.dropna(how='all', inplace=True)
                 models = st.multiselect('Select models', options=df_arena.index.unique(), 
-                                        default=['GPT-4o', 'Gemini 1.5 Pro 2024-05', 'Claude 3 Opus', 'Llama 3 70B', 'Qwen1.5 110B'], 
+                                        default=['GPT-4o', 'Gemini 1.5 Pro 2024-05', 'Claude 3.5 Sonnet', 'Llama 3 70B', 'Qwen2 72B'], 
                                         key=f'arena-model-{idx}')
                 if len(models) < 1:
                     st.warning('Please select at least 1 model.')

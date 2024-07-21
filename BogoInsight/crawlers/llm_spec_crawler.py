@@ -88,7 +88,7 @@ class LLMSpecsCrawler(BaseCrawler):
             sup.extract()
             
         # Find the section by title
-        section = soup.find('span', {'class': 'mw-headline', 'id': 'List'}).parent
+        section = soup.find('h2', {'id': 'List'}).parent
         
         # Find the first table in the section
         table_html = section.find_next_sibling('table')

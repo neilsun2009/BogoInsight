@@ -35,6 +35,7 @@ class BFCLCrawler(BaseCrawler):
         'Meta-Llama-3-8B-Instruct (Prompt)': 'Llama 3 8B',
         'GPT-4-0613 (FC)': 'GPT-4 0613',
         'Gemma-7b-it (Prompt)': 'Gemma',
+        'Claude-3.5-Sonnet-20240620 (Prompt)': 'Claude 3.5 Sonnet',
         '': '',
     }
     
