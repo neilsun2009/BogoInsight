@@ -61,6 +61,11 @@ class FootballKnockoutCrawler(BaseCrawler):
         "UEFA Euro": {
             "games": [
                 {
+                    "year": 2024,
+                    "game_name": "Germany 2024",
+                    "data_url": "https://en.wikipedia.org/wiki/UEFA_Euro_2024"
+                },
+                {
                     "year": 2021,
                     "game_name": "Euro 2020",
                     "data_url": "https://en.wikipedia.org/wiki/UEFA_Euro_2020"
@@ -122,19 +127,20 @@ class FootballKnockoutCrawler(BaseCrawler):
                 for sup in soup.find_all('sup'):
                     sup.extract()
                 # Find the section by title
-                section = soup.find('span', {'class': 'mw-headline', 'id': 'Knockout_stage'})
+                section = soup.find('h2', {'id': 'Knockout_stage'})
                 if section is None:
-                    section = soup.find('span', {'class': 'mw-headline', 'id': 'Knockout_phase'})
+                    section = soup.find('h2', {'id': 'Knockout_phase'})
                 section = section.parent           
                 # Initialize an empty list to hold the filtered h3 elements
                 sub_sections = []
                 # Iterate over all next siblings of the section
                 for sibling in section.find_next_siblings():
+                    classnames = sibling.get('class', [])
                     # If the sibling is an h2, break the loop
-                    if sibling.name == 'h2':
+                    if 'mw-heading2' in classnames:
                         break
                     # If the sibling is an h3 and does not contain 'Bracket', add it to the list
-                    elif sibling.name == 'h3' and 'Bracket' not in sibling.text:
+                    elif 'mw-heading3' in classnames and 'Bracket' not in sibling.text:
                         sub_sections.append(sibling)
 
                 # Collect match details
@@ -166,15 +172,16 @@ class FootballKnockoutCrawler(BaseCrawler):
         match_details_list = []
     
         # Extract match round from the current subsection
-        match_round = sub_section.find('span', class_='mw-headline').text.strip()
+        match_round = sub_section.find('h3').text.strip()
     
         # Find all subsequent siblings until the next h3
         for sibling in sub_section.next_siblings:
-            if sibling.name in ['h3', 'h2']:
-                break
-    
             if isinstance(sibling, NavigableString):
                 continue
+            
+            classnames = sibling.get('class', [])
+            if 'mw-heading' in classnames:
+                break
     
             if sibling.get('class') == ['footballbox']:
                 match_details = {}
